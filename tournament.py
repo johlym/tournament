@@ -2,28 +2,51 @@
 # 
 # tournament.py -- implementation of a Swiss-system tournament
 #
-
+import config as cfg
 import psycopg2
 
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
-    return psycopg2.connect("dbname=tournament")
+    return psycopg2.connect(database=cfg.DATABASE_NAME,
+                            user=cfg.DATABASE_USERNAME,
+                            password=cfg.DATABASE_PASSWORD)
 
 
-def deleteMatches():
+def delete_matches():
     """Remove all the match records from the database."""
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
 
 
-def deletePlayers():
+def delete_players():
     """Remove all the player records from the database."""
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
 
 
-def countPlayers():
+def count_players():
     """Returns the number of players currently registered."""
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
 
 
-def registerPlayer(name):
+def register_player(name,country):
     """Adds a player to the tournament database.
   
     The database assigns a unique serial id number for the player.  (This
@@ -32,9 +55,16 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    #connection = connect()
+    #cursor = connection.cursor()
+    #cursor.execute("")
+    #connection.commit()
+    #cursor.close()
+    #connection.close()
+    return 0
 
 
-def playerStandings():
+def player_standings():
     """Returns a list of the players and their win records, sorted by wins.
 
     The first entry in the list should be the player in first place, or a player
@@ -47,18 +77,32 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
 
 
-def reportMatch(winner, loser):
+def report_match(winner, loser):
     """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
- 
-def swissPairings():
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
+
+
+def swiss_pairings():
     """Returns a list of pairs of players for the next round of a match.
   
     Assuming that there are an even number of players registered, each player

@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 __author__ = 'jlyman'
 
 # TOURNAMENT MATCHUP APPLICATION
@@ -6,9 +8,7 @@ __author__ = 'jlyman'
 
 import argparse as arg
 import config as cfg
-import datetime as dt
-import psycopg2
-import re
+import time
 import sys
 import tournament as trn
 
@@ -25,7 +25,12 @@ def new_player(player_name, player_country):
         print "You forgot the Player's Country of Origin."
         player_country = raw_input("Country of Origin: ")
     print "Creating new entry for %s from %s" % (player_name, player_country)
-    print "Created new entry."
+    start = time.time()
+    result = trn.register_player(player_name,player_country)
+    stop = time.time()
+    duration = stop - start
+    if result == 0:
+        print "Successfully created new entry in %d seconds" % duration
 
 # Delete an existing player based on their ID.
 def delete_player(method, data):
@@ -43,6 +48,7 @@ def delete_player(method, data):
     # Anything else is a no-go.
     else:
         raise NotImplementedError('The method %s is unsupported.', method)
+    return 0
 
 
 # Get a list of players based on criteria and display method.
@@ -53,7 +59,6 @@ def list_players(criteria, method):
 # Update player information
 def update_player(match_id):
     print "Update Player Information."
-
 
 # MATCH ORIENTED FUNCTIONS #
 
@@ -100,15 +105,18 @@ parser.add_argument('--new-player',
                     help='Create a new player. Use --player-name and '
                          '--player-country if you would like to specify those'
                          'pieces of information ahead of time.')
+
 parser.add_argument('--player-name',
                     dest='player_name',
                     action='store',
                     help='Your Player\'s Name. Useful for --new-player, '
                          '--new-match, --delete-player, --get-results-by')
+
 parser.add_argument('--player-country',
                     dest='player_country',
                     action='store',
                     help='Your Player\'s Country of Origin')
+
 # NEW MATCH function
 parser.add_argument('--new-match',
                     dest='new_match',
@@ -117,8 +125,8 @@ parser.add_argument('--new-match',
                     help='Create a new match.')
 
 # GET LATEST RESULTS function
-parser.add_argument('--get-latest-results',
-                    dest='get_latest_results',
+parser.add_argument('--get-latest-result',
+                    dest='get_latest_result',
                     action='store_true',
                     default=False,
                     help='Get the results from the latest match.')
@@ -154,21 +162,12 @@ parser.add_argument('--list-results',
                     default=False,
                     help='List Results from a recent match.')
 
-
 # LIST PLAYERS function
 parser.add_argument('--list-players',
                     dest='list_players',
                     action='store_true',
                     default=False,
                     help='List all players.')
-
-# LIST PLAYERS function
-parser.add_argument('--build-database',
-                    dest='build_database',
-                    action='store_true',
-                    default=False,
-                    help='If this is your first time running this script, '
-                         'use this flag.')
 
 args = parser.parse_args()
 
@@ -211,16 +210,9 @@ if args.get_result:
         print "The ID Number has to be 1 or greater."
     print "Looking up match results by ID number %s" % args.get_results_by_id
 
-if args.get_latest_results:
+if args.get_latest_result:
     print "GET THE LATEST MATCH RESULT"
     latest_match()
-
-
-# The database builder
-
-if args.build_database:
-    print "BUILD DATABASE"
-    print "coming soon."
 
 
 # IF NO ARGUMENTS #
@@ -229,4 +221,5 @@ if args.build_database:
 if len(sys.argv) == 1:
     print "We understand that sometimes you just don't know what to do. " \
           "That's ok, here ya go. Now go have fun!"
+    raw_input("Press any key to see the argument help.")
     print parser.print_help()
