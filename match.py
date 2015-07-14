@@ -8,6 +8,7 @@ import argparse as arg
 import config as cfg
 import datetime as dt
 import psycopg2
+import re
 import sys
 import tournament as trn
 
@@ -27,8 +28,21 @@ def new_player(player_name, player_country):
     print "Created new entry."
 
 # Delete an existing player based on their ID.
-def delete_player():
-    print "Delete an Existing Player."
+def delete_player(method, data):
+    # Check by ID
+    if method == "by_id":
+        # Check if ID is valid
+        if id == "0" or 0:
+            raise ValueError('ID Number 0 is invalid.')
+        print "Looking Up Player with ID# %s" % data
+    # Check by name
+    elif method == "by_name":
+        if data == '':
+            data = raw_input("Enter the Player\'s Name: ")
+        print "Looking Up Player with Name %s" % data
+    # Anything else is a no-go.
+    else:
+        raise NotImplementedError('The method %s is unsupported.', method)
 
 
 # Get a list of players based on criteria and display method.
@@ -63,6 +77,10 @@ def delete_match(match_id):
 def list_matches(criteria, method):
     print "List All Matches"
 
+
+# Get the latest match's information
+def latest_match():
+    print "The Latest Match"
 
 # Rank Players by Number of Wins
 def list_win_ranking():
@@ -99,14 +117,26 @@ parser.add_argument('--new-match',
                     help='Create a new match.')
 
 # GET LATEST RESULTS function
-parser.add_argument('--get-results',
-                    dest='get_results',
+parser.add_argument('--get-latest-results',
+                    dest='get_latest_results',
                     action='store_true',
                     default=False,
-                    help='Get the results from a match.')
+                    help='Get the results from the latest match.')
+
+# GET LATEST RESULTS function
+parser.add_argument('--get-result',
+                    dest='get_result',
+                    action='store',
+                    help='Get the results from a specific match by ID.')
 
 # DELETE PLAYER function
 parser.add_argument('--delete-player',
+                    dest='delete_player',
+                    action='store_true',
+                    default=False,
+                    help='Delete a player from the match system with prompts.')
+
+parser.add_argument('--delete-player-by-id',
                     dest='delete_player_id',
                     action='store',
                     help='Delete a player from the match system by ID')
@@ -124,11 +154,6 @@ parser.add_argument('--list-results',
                     default=False,
                     help='List Results from a recent match.')
 
-# LIST RESULTS BY FILTER function
-parser.add_argument('--get-results-by',
-                    dest='get_results_by',
-                    action='store',
-                    help='Get Results from a recent match by FILTER.')
 
 # LIST PLAYERS function
 parser.add_argument('--list-players',
@@ -137,19 +162,65 @@ parser.add_argument('--list-players',
                     default=False,
                     help='List all players.')
 
+# LIST PLAYERS function
+parser.add_argument('--build-database',
+                    dest='build_database',
+                    action='store_true',
+                    default=False,
+                    help='If this is your first time running this script, '
+                         'use this flag.')
+
 args = parser.parse_args()
 
 
 # ROUTING LOGIC #
 
-if args.new_player == True:
+if args.new_player:
     print "CREATE A NEW PLAYER"
     new_player(args.player_name, args.player_country)
     print "Done."
 
-if args.new_match == True:
+if args.new_match:
     print "START A NEW MATCH"
     new_match(args.match_players[0],args.match_players[1], args.match_name)
+
+if args.delete_player:
+    print "DELETE PLAYER"
+    data = ''   # need this for a happy IDE.
+    delete_player("by_name", data)
+
+if args.list_players:
+    print "LIST PLAYERS"
+
+if args.delete_player_id:
+    print "DELETE PLAYER BY ID"
+    id_number = args.delete_player_id
+    if not args.delete_player_id > 0:
+        id_number = raw_input("Player ID Number [Leave Blank if Unknown]:")
+    delete_player("by_id", id_number)
+
+if args.delete_match_id:
+    print "DELETE MATCH"
+
+if args.list_results:
+    print "LIST RESULTS"
+
+if args.get_result:
+    print "GET RESULT BY ID"
+    if args.get_result < 1:
+        print "The ID Number has to be 1 or greater."
+    print "Looking up match results by ID number %s" % args.get_results_by_id
+
+if args.get_latest_results:
+    print "GET THE LATEST MATCH RESULT"
+    latest_match()
+
+
+# The database builder
+
+if args.build_database:
+    print "BUILD DATABASE"
+    print "coming soon."
 
 
 # IF NO ARGUMENTS #
