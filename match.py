@@ -9,8 +9,10 @@ __author__ = 'jlyman'
 import argparse as arg
 import config as cfg
 import time
+import datetime
 import sys
 import tournament as trn
+import uuid
 
 
 # PLAYER ORIENTED FUNCTIONS #
@@ -21,16 +23,23 @@ def new_player(player_name, player_country):
     if not player_name:
         print "You forgot the Player's Name."
         player_name = raw_input("Player's Name: ")
+        logger("Prompted for player name", "new_player()")
+        logger("Received player name " + player_name, "new_player()")
     if not player_country:
         print "You forgot the Player's Country of Origin."
         player_country = raw_input("Country of Origin: ")
+        logger("Prompted for player country", "new_player()")
+        logger("Received player country " + player_country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, player_country)
     start = time.time()
-    result = trn.register_player(player_name,player_country)
+    trn.register_player(player_name,player_country)
     stop = time.time()
     duration = stop - start
-    if result == 0:
-        print "Successfully created new entry in %d seconds" % duration
+    print "Successfully created new entry in %d seconds" % duration
+    logger("Database entry created for " + player_name + " from " +
+           player_country + ".",
+           "new_player()")
+    logger("Function fully complete.", "new_player()")
 
 # Delete an existing player based on their ID.
 def delete_player(method, data):
@@ -52,8 +61,14 @@ def delete_player(method, data):
 
 
 # Get a list of players based on criteria and display method.
-def list_players(criteria, method):
+def list_players():
     print "List All Players."
+    print "Here's a list of all players in the database: "
+    print "=============================================="
+    for row in trn.count_players():
+        print "ID# " + str(row[0]) + " | " \
+              "NAME: " + row[1] + " | " \
+              "COUNTRY: " + row[2]
 
 
 # Update player information
@@ -61,7 +76,6 @@ def update_player(match_id):
     print "Update Player Information."
 
 # MATCH ORIENTED FUNCTIONS #
-
 
 # Create a new match
 def new_match(player_1, player_2, match_name):
@@ -90,6 +104,22 @@ def latest_match():
 # Rank Players by Number of Wins
 def list_win_ranking():
     print "List Ranking of Players by Wins"
+
+# Any good app keeps a log.
+def logger(entry, action):
+    unique_id = str(uuid.uuid4())
+    timestamp = datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
+    connection = trn.connect()
+    cursor = connection.cursor()
+    cursor.execute("INSERT INTO auditlog "
+                   "(entry, action, unique_id, timestamp) "
+                   "VALUES (\'" + entry + "\',"
+                   "\'" + action + "\',"
+                   " \'" + unique_id + "\',"
+                   " \'" + timestamp + "\');")
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 
 # Using command-line arguments to control actions. User can use flags to run
@@ -177,7 +207,6 @@ args = parser.parse_args()
 if args.new_player:
     print "CREATE A NEW PLAYER"
     new_player(args.player_name, args.player_country)
-    print "Done."
 
 if args.new_match:
     print "START A NEW MATCH"
@@ -190,6 +219,7 @@ if args.delete_player:
 
 if args.list_players:
     print "LIST PLAYERS"
+    list_players()
 
 if args.delete_player_id:
     print "DELETE PLAYER BY ID"

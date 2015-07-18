@@ -39,11 +39,12 @@ def count_players():
     """Returns the number of players currently registered."""
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("")
+    cursor.execute("SELECT * FROM players;")
+    rows = cursor.fetchall()
     connection.commit()
     cursor.close()
     connection.close()
-    return 0
+    return rows
 
 
 def register_player(name,country):
@@ -55,13 +56,17 @@ def register_player(name,country):
     Args:
       name: the player's full name (need not be unique).
     """
-    #connection = connect()
-    #cursor = connection.cursor()
-    #cursor.execute("")
-    #connection.commit()
-    #cursor.close()
-    #connection.close()
-    return 0
+    connection = connect()
+    cursor = connection.cursor()
+    execution = cursor.execute("INSERT INTO players (name, country) "
+                   "VALUES (\'" + name + "\',"
+                   " \'" + country + "\');")
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return execution
+
+
 
 
 def player_standings():
