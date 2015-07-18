@@ -6,12 +6,15 @@ __author__ = 'jlyman'
 # Simulates 1-on-1 matchups and swiss ranked matches. Queries a pgSQL database
 # for match and player information.
 
+# ordering imports alphabetically is good a good pythonism.
+
 import argparse as arg
 import config as cfg
+import database as db
 import time
 import sys
 import tools
-import tournament as trn
+
 
 # PLAYER ORIENTED FUNCTIONS #
 
@@ -32,7 +35,7 @@ def new_player(player_name, player_country):
         tools.logger("Received player country " + player_country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, player_country)
     start = time.time()
-    trn.register_player(player_name,player_country)
+    db.register_player(player_name,player_country)
     stop = time.time()
     duration = stop - start
     print "Successfully created new entry in %d seconds" % duration
@@ -40,6 +43,7 @@ def new_player(player_name, player_country):
            player_country + ".",
            "new_player()")
     tools.logger("Function fully complete.", "new_player()")
+
 
 # Delete an existing player based on their ID.
 def delete_player(method, data):
@@ -66,7 +70,7 @@ def list_players():
     print "Here's a list of all players in the database: "
     print "=============================================="
     tools.logger("Requesting all players in the database.", "list_players()")
-    results = trn.count_players()
+    results = db.count_players()
     for row in results:
         print "ID# " + str(row[0]) + " | " \
               "NAME: " + row[1] + " | " \
@@ -78,6 +82,7 @@ def update_player(match_id):
     print "Update Player Information."
 
 # MATCH ORIENTED FUNCTIONS #
+
 
 # Create a new match
 def new_match(player_1, player_2, match_name):
