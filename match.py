@@ -9,11 +9,9 @@ __author__ = 'jlyman'
 import argparse as arg
 import config as cfg
 import time
-import datetime
 import sys
+import tools
 import tournament as trn
-import uuid
-
 
 # PLAYER ORIENTED FUNCTIONS #
 
@@ -21,25 +19,27 @@ import uuid
 # Create a new player based on their name and country of origin.
 def new_player(player_name, player_country):
     if not player_name:
+        tools.logger("No name specified. Defaulting to questionnaire.",
+                     "new_player()")
         print "You forgot the Player's Name."
         player_name = raw_input("Player's Name: ")
-        logger("Prompted for player name", "new_player()")
-        logger("Received player name " + player_name, "new_player()")
+        tools.logger("Prompted for player name", "new_player()")
+        tools.logger("Received player name " + player_name, "new_player()")
     if not player_country:
         print "You forgot the Player's Country of Origin."
         player_country = raw_input("Country of Origin: ")
-        logger("Prompted for player country", "new_player()")
-        logger("Received player country " + player_country, "new_player()")
+        tools.logger("Prompted for player country", "new_player()")
+        tools.logger("Received player country " + player_country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, player_country)
     start = time.time()
     trn.register_player(player_name,player_country)
     stop = time.time()
     duration = stop - start
     print "Successfully created new entry in %d seconds" % duration
-    logger("Database entry created for " + player_name + " from " +
+    tools.logger("Database entry created for " + player_name + " from " +
            player_country + ".",
            "new_player()")
-    logger("Function fully complete.", "new_player()")
+    tools.logger("Function fully complete.", "new_player()")
 
 # Delete an existing player based on their ID.
 def delete_player(method, data):
@@ -65,7 +65,9 @@ def list_players():
     print "List All Players."
     print "Here's a list of all players in the database: "
     print "=============================================="
-    for row in trn.count_players():
+    tools.logger("Requesting all players in the database.", "list_players()")
+    results = trn.count_players()
+    for row in results:
         print "ID# " + str(row[0]) + " | " \
               "NAME: " + row[1] + " | " \
               "COUNTRY: " + row[2]
@@ -106,20 +108,7 @@ def list_win_ranking():
     print "List Ranking of Players by Wins"
 
 # Any good app keeps a log.
-def logger(entry, action):
-    unique_id = str(uuid.uuid4())
-    timestamp = datetime.datetime.now().strftime("%A, %d. %B %Y %I:%M%p")
-    connection = trn.connect()
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO auditlog "
-                   "(entry, action, unique_id, timestamp) "
-                   "VALUES (\'" + entry + "\',"
-                   "\'" + action + "\',"
-                   " \'" + unique_id + "\',"
-                   " \'" + timestamp + "\');")
-    connection.commit()
-    cursor.close()
-    connection.close()
+
 
 
 # Using command-line arguments to control actions. User can use flags to run
@@ -218,7 +207,6 @@ if args.delete_player:
     delete_player("by_name", data)
 
 if args.list_players:
-    print "LIST PLAYERS"
     list_players()
 
 if args.delete_player_id:
@@ -253,3 +241,5 @@ if len(sys.argv) == 1:
           "That's ok, here ya go. Now go have fun!"
     raw_input("Press any key to see the argument help.")
     print parser.print_help()
+
+tools.logger("Script completed.", "__main__")

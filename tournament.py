@@ -4,7 +4,7 @@
 #
 import config as cfg
 import psycopg2
-
+import tools
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
@@ -40,6 +40,9 @@ def count_players():
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM players;")
+    count = cursor.rowcount
+    tools.logger("Retrieved " + str(count) + " rows "
+                 "from the database.", "trn.count_players()")
     rows = cursor.fetchall()
     connection.commit()
     cursor.close()
