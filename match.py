@@ -139,7 +139,7 @@ def list_players():
     results = db.count_players()
 
     # table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Wins'])
-    table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
+    table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Code'])
     table.align = "l"
     for row in results:
         count += 1
@@ -147,7 +147,7 @@ def list_players():
         # for win in wins:
         #     wincount = win[0]
         # table.add_row([count, row[0], row[1], row[2], wincount])
-        table.add_row([count, row[0], row[1], row[2]])
+        table.add_row([count, row[0], row[1], row[2], row[3]])
     print table
     stop = time.time()
 
