@@ -24,15 +24,11 @@ import tools
 
 # Create a new player based on their name and country of origin.
 def new_player():
-    tools.logger("Presenting Questionnaire.",
-                 "new_player()")
     print "Please enter the player's Name: "
     player_name = raw_input("Player's Name: ")
-    tools.logger("Prompted for player name", "new_player()")
     tools.logger("Received player name " + player_name, "new_player()")
     print "Please enter the player's Country of Origin: "
     player_country = raw_input("Country of Origin: ")
-    tools.logger("Prompted for player country", "new_player()")
     tools.logger("Received player country " + player_country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, player_country)
     start = time.time()
@@ -44,7 +40,6 @@ def new_player():
     tools.logger("Database entry created for " + player_name + " from " +
                  player_country + ".",
                  "new_player()")
-    tools.logger("Function fully complete.", "new_player()")
 
 
 # Delete an existing player based on their ID.
@@ -54,6 +49,7 @@ def delete_player():
     count = 0
     start = 0
     stop = 0
+    by = ''
     # A quick and dirty way to keep asking until we get the right answer is via
     # a WHILE loop. So long as the user DOESN'T give us "1" or "2",
     # we'll keep bugging them.
@@ -70,37 +66,36 @@ def delete_player():
         # 1 if by land (ID)
         if method == "1":
             by = "ID"
-            print "Looking up player By ID..."
-            criteria = raw_input("Please enter the player's ID: ")
-            start = time.time()
-            results = db.search("players", by, criteria)
-            table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
-            table.align = "l"
-            for row in results:
-                count += 1
-                table.add_row([count, row[0], row[1], row[2]])
-            print table
-            stop = time.time()
+            print "Looking up player by ID..."
         # 2 if by sea (name)
         if method == "2":
             by = "name"
             print "Looking up player by Name..."
-            criteria = raw_input("Please enter the player's Name: ")
-            start = time.time()
-            results = db.search("players", by, criteria)
-            table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
-            table.align = "l"
-            for row in results:
-                count += 1
-                table.add_row([count, row[0], row[1], row[2]])
-            print table
-            stop = time.time()
+        criteria = raw_input("Please enter the player's Name: ")
+        start = time.time()
+        results = db.search("players", by, criteria)
+        table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
+        table.align = "l"
+        for row in results:
+            count += 1
+            table.add_row([count, row[0], row[1], row[2]])
+        print table
+        stop = time.time()
 
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
                  "delete_player()")
     print "Returned %s results in %s seconds" % (count, duration[:5])
+    print ""
+    player = raw_input("Which player do you want to delete? [ID]")
+    start = time.time()
+    db.delete_player(player)
+    tools.logger("Deleted %s from the database" % player, "delete_player()")
+    stop = time.time()
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    print "Deleted %s. Took %s seconds." % (player, duration[:5])
 
 
 # Get a list of players based on criteria and display method.
@@ -160,11 +155,17 @@ def go_match():
         winner = player_2
         loser = player_1
     db.report_match(winner, loser, player_1, player_2)
+    tools.logger("Reported win to database.", "go_match()")
     print "Finished."
 
 
+def swiss_match():
+    # create a new match using the swiss paring system.
+    print ""
+
+
 # Delete an existing match
-def delete_match(match_id):
+def delete_match():
     print "Delete an Existing Match."
     # delete a match from the matches table, using the match ID.
 
@@ -192,11 +193,18 @@ def list_matches():
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, duration[:5])
 
+
 # Get the latest match's information
 def latest_match():
     print "The Latest Match"
     # get the latest match in the matches table and fetch the player names to
     # display who won and lost.
+
+
+# Get the latest match's information
+def lookup_match():
+    print "Lookup Match"
+    # Lookup a match by ID.
 
 
 # Rank Players by Number of Wins
@@ -271,6 +279,12 @@ parser.add_argument('--new-match',
                     default=False,
                     help='Create a new match.')
 
+parser.add_argument('--swiss-match',
+                    dest='swiss_match',
+                    action='store_true',
+                    default=False,
+                    help='Create a new match with swiss pairing.')
+
 # GET LATEST RESULTS function
 parser.add_argument('--get-latest',
                     dest='get_latest',
@@ -316,7 +330,7 @@ parser.add_argument('--audit-log',
                     dest='audit_log',
                     action='store_true',
                     default=False,
-                    help='List all players.')
+                    help='Display the Audit Logs.')
 
 args = parser.parse_args()
 
@@ -324,37 +338,33 @@ args = parser.parse_args()
 # ROUTING LOGIC #
 
 if args.new_player:
-    print "CREATE A NEW PLAYER"
     new_player()
 
 if args.new_match:
-    print "START A NEW MATCH"
     go_match()
 
+if args.swiss_match:
+    swiss_match()
+
 if args.delete_player:
-    print "DELETE PLAYER"
     delete_player()
 
 if args.list_players:
-    print "LIST ALL PLAYERS"
     list_players()
 
 if args.delete_match:
-    print "DELETE MATCH"
+    delete_match()
 
 if args.list_results:
-    print "LIST RESULTS"
     list_matches()
 
 if args.get_result:
-    print "GET RESULTS"
+    lookup_match()
 
 if args.get_latest:
-    print "GET THE LATEST MATCH RESULT"
     latest_match()
 
 if args.audit_log:
-    print "DISPLAY AUDIT LOG"
     display_log()
 
 
@@ -362,7 +372,7 @@ if args.audit_log:
 # Sometimes people need a bit of help...
 
 if len(sys.argv) == 1:
-    print "We understand that sometimes you just don't know what to do. " \
+    print "Sometimes you just don't know what to do. " \
           "That's ok, here ya go. Now go have fun!"
     raw_input("Press any key to see the argument help.")
     print parser.print_help()
