@@ -3,28 +3,60 @@
 CREATE DATABASE tournament;
 \c tournament;
 
--- Create players table
+-- Table: players
 
-CREATE TABLE players(
-ID SERIAL PRIMARY KEY  NOT NULL,
-NAME    TEXT    NOT NULL,
-COUNTRY TEXT    NOT NULL
+-- DROP TABLE players;
+
+CREATE TABLE players
+(
+  id serial NOT NULL,
+  name text NOT NULL,
+  country text NOT NULL,
+  code text,
+  CONSTRAINT players_pkey PRIMARY KEY (id)
+)
+WITH (
+  OIDS=FALSE
 );
+ALTER TABLE players
+  OWNER TO postgres;
 
--- Create matches table
 
-CREATE TABLE matches(
-ID SERIAL PRIMARY KEY  NOT NULL,
-PLAYER_1    TEXT    NOT NULL,
-PLAYER_2    TEXT    NOT NULL,
-WINNER      TEXT    NOT NULL,
-TIMESTAMP   TEXT    NOT NULL
+-- Table: matches
+
+-- DROP TABLE matches;
+
+CREATE TABLE matches
+(
+  id serial NOT NULL,
+  player_1 text NOT NULL,
+  player_2 text NOT NULL,
+  winner text NOT NULL,
+  "timestamp" text NOT NULL,
+  CONSTRAINT matches_pkey PRIMARY KEY (id)
+)
+WITH (
+  OIDS=FALSE
 );
+ALTER TABLE matches
+  OWNER TO postgres;
 
-CREATE TABLE auditlog(
-ID SERIAL PRIMARY KEY  NOT NULL,
-entry  TEXT    NOT NULL,
-action  TEXT    NOT NULL,
-unique_id    TEXT    NOT NULL,
-timestamp    TEXT    NOT NULL
+
+-- Table: auditlog
+
+-- DROP TABLE auditlog;
+
+CREATE TABLE auditlog
+(
+  id serial NOT NULL,
+  entry text NOT NULL,
+  action text NOT NULL,
+  unique_id text NOT NULL,
+  "timestamp" text NOT NULL,
+  CONSTRAINT auditlog_pkey PRIMARY KEY (id)
+)
+WITH (
+  OIDS=FALSE
 );
+ALTER TABLE auditlog
+  OWNER TO postgres;
