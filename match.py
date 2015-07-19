@@ -136,8 +136,7 @@ def list_players():
     print "=============================================="
     tools.logger("Requesting all players in the database.", "list_players()")
     start = time.time()
-    results = db.count_players()
-
+    results = db.search("players", "ALL", "null")
     # table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Wins'])
     table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Code'])
     table.align = "l"
@@ -156,6 +155,7 @@ def list_players():
     tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
                  "list_players()")
     print "Returned %s results in %s seconds" % (count, duration[:5])
+
 
 # MATCH ORIENTED FUNCTIONS #
 
@@ -202,8 +202,34 @@ def swiss_match():
 
 # Delete an existing match
 def delete_match():
-    print "Delete an Existing Match."
-    # delete a match from the matches table, using the match ID.
+    count = 0
+    print "In order to delete a match, first we need to look it up " \
+          "and make sure it's actually there."
+    start = time.time()
+    results = db.search("matches", "ALL", "null")
+    table = PrettyTable(['#', 'ID', 'Winner Code', 'Timestamp'])
+    table.align = "l"
+    for row in results:
+        count += 1
+        table.add_row([count, row[0], row[3], row[4]])
+    print table
+    stop = time.time()
+
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+                 "delete_match()")
+    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print ""
+    match = raw_input("Which match do you want to delete? [ID]")
+    start = time.time()
+    db.delete_match(match)
+    tools.logger("Deleted %s from the database" % match, "delete_match()")
+    stop = time.time()
+
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    print "Complete. Operation took %s seconds." % duration[:5]
 
 
 # Display all historical matches.
@@ -353,7 +379,7 @@ parser.add_argument('--edit-player',
 # DELETE MATCH function
 parser.add_argument('--delete-match',
                     dest='delete_match',
-                    action='store',
+                    action='store_true',
                     help='Delete a match from the match system by ID.')
 
 # LIST RESULTS function

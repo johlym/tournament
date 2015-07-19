@@ -16,11 +16,11 @@ def connect():
                             password=cfg.DATABASE_PASSWORD)
 
 
-def delete_matche():
+def delete_match(match_id):
     # Remove all the match records from the database.
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("")
+    cursor.execute("DELETE FROM matches WHERE id = " + match_id + ";")
     connection.commit()
     cursor.close()
     connection.close()
