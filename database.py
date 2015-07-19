@@ -122,11 +122,9 @@ def player_standings():
     cursor.execute("select winner, count(winner) "
                    "FROM matches "
                    "GROUP BY winner "
-                   "ORDER BY count desc"
+                   "ORDER BY count desc "
                    "LIMIT 5;")
     count = cursor.rowcount
-    tools.logger("Retrieved " + str(count) + " rows "
-                 "from tournament.matches.", "trn.player_standings()")
     rows = cursor.fetchall()
     connection.commit()
     cursor.close()

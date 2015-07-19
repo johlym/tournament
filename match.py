@@ -164,6 +164,8 @@ def list_players():
 def go_match():
     player_1_code = ''
     player_2_code = ''
+    player_1_name = ''
+    player_2_name = ''
     player_1 = raw_input("ID# for Player 1: ")
     player_2 = raw_input("ID# for Player 2: ")
     tools.logger("Starting match between " + player_1 + " and " + player_2,
@@ -171,23 +173,30 @@ def go_match():
     code_lookup = db.search("players", "ID", player_1)
     for row in code_lookup:
         player_1_code = row[3]
+        player_name = db.search("players", "CODE", player_1_code)
+        for result in player_name:
+            player_1_name = result[1]
     code_lookup = db.search("players", "ID", player_2)
     for row in code_lookup:
         player_2_code = row[3]
-    print "Match between %s and %s" % (player_1, player_2)
+        player_name = db.search("players", "CODE", player_2_code)
+        for result in player_name:
+            player_2_name = result[1]
+    print "Match between %s and %s" % (player_1_name, player_2_name)
+    if (not player_1_name) or (not player_2_name):
+        raise ValueError("One of the two players you entered doesn't exist.")
     # Randomly pick between one or two.
     random_int = random.randrange(1, 3)
-    print random_int
     tools.logger("Generated random number " + str(random_int), "go_match()")
     # If the random number is even: player 1 wins. Else: player 2 wins.
     if random_int == 2:
         # the random number is even:
-        print player_1 + " wins!"
+        print player_1_name + " wins!"
         tools.logger("Stated that player 1 wins.", "go_match()")
         winner = player_1_code
     else:
         # the random number is odd:
-        print "Player " + player_2 + " wins!"
+        print "Player " + player_2_name + " wins!"
         tools.logger("Stated that player 2 wins.", "go_match()")
         winner = player_2_code
     db.report_match(winner, player_1, player_2)
@@ -320,8 +329,29 @@ def lookup_match():
 # Rank Players by Number of Wins
 def list_win_ranking():
     print "List Ranking of Players by Wins"
-    # get list of players and their IDs.
+    count = 0
+    name = ''
+    # get list of players and their IDs
     # for each player, count the number of times they won in every match
+    start = time.time()
+    results = db.player_standings()
+    table = PrettyTable(['#', 'PLAYER', 'WINS'])
+    table.align = 'l'
+    for row in results:
+        count += 1
+        player = db.search("players", "CODE", row[0])
+        for entry in player:
+            name = entry[1]
+        if name == '':
+            name = "[PLAYER DELETED]"
+        table.add_row([count, name, row[1]])
+    print table
+    stop = time.time()
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+                 "list_matches")
+    print "Returned %s results in %s seconds" % (count, duration[:5])
 
 
 # Any good app keeps a log.
@@ -373,6 +403,7 @@ def display_log():
 # applicable.
 
 parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
+
 # NEW PLAYER function
 parser.add_argument('--new-player',
                     dest='new_player',
@@ -389,6 +420,7 @@ parser.add_argument('--new-match',
                     default=False,
                     help='Create a new match.')
 
+# SWISS MATCHUP function
 parser.add_argument('--swiss-match',
                     dest='swiss_match',
                     action='store_true',
@@ -442,6 +474,13 @@ parser.add_argument('--list-players',
                     default=False,
                     help='List all players.')
 
+# LIST RANKED function
+parser.add_argument('--list-ranking',
+                    dest='list_ranking',
+                    action='store_true',
+                    default=False,
+                    help='List rankings.')
+
 # VIEW AUDIT LOG function
 parser.add_argument('--audit-log',
                     dest='audit_log',
@@ -483,6 +522,9 @@ if args.lookup_match:
 
 if args.latest_match:
     latest_match()
+
+if args.list_ranking:
+    list_win_ranking()
 
 if args.audit_log:
     display_log()
