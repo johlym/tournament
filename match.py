@@ -11,6 +11,7 @@ __author__ = 'jlyman'
 import argparse as arg
 import config as cfg
 import database as db
+from decimal import Decimal
 import random
 import sys
 import time
@@ -21,25 +22,24 @@ import tools
 
 
 # Create a new player based on their name and country of origin.
-def new_player(player_name, player_country):
-    if not player_name:
-        tools.logger("No name specified. Defaulting to questionnaire.",
-                     "new_player()")
-        print "You forgot the Player's Name."
-        player_name = raw_input("Player's Name: ")
-        tools.logger("Prompted for player name", "new_player()")
-        tools.logger("Received player name " + player_name, "new_player()")
-    if not player_country:
-        print "You forgot the Player's Country of Origin."
-        player_country = raw_input("Country of Origin: ")
-        tools.logger("Prompted for player country", "new_player()")
-        tools.logger("Received player country " + player_country, "new_player()")
+def new_player():
+    tools.logger("Presenting Questionnaire.",
+                 "new_player()")
+    print "Please enter the player's Name: "
+    player_name = raw_input("Player's Name: ")
+    tools.logger("Prompted for player name", "new_player()")
+    tools.logger("Received player name " + player_name, "new_player()")
+    print "Please enter the player's Country of Origin: "
+    player_country = raw_input("Country of Origin: ")
+    tools.logger("Prompted for player country", "new_player()")
+    tools.logger("Received player country " + player_country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, player_country)
     start = time.time()
     db.register_player(player_name,player_country)
     stop = time.time()
-    duration = stop - start
-    print "Successfully created new entry in %d seconds" % duration
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                             rounding="ROUND_UP"))
+    print "Successfully created new entry in %i seconds" % duration[:5]
     tools.logger("Database entry created for " + player_name + " from " +
            player_country + ".",
            "new_player()")
@@ -73,9 +73,11 @@ def list_players():
     tools.logger("Requesting all players in the database.", "list_players()")
     results = db.count_players()
     for row in results:
+
         print "ID# " + str(row[0]) + " | " \
               "NAME: " + row[1] + " | " \
               "COUNTRY: " + row[2]
+    # need to add code to get their win counts.
 
 
 # Update player information. This needs the player ID from the SQL database.
@@ -121,10 +123,27 @@ def delete_match(match_id):
 
 
 # Get a list of matches based on criteria and display method
-def list_matches(criteria, method):
+def list_matches():
+    start = time.time()
+    tools.logger("Listing all matches.", "list_matches()")
     print "List All Matches"
-    # display all matches in the matches table, in groups of ten.
-
+    # display all matches in the matches table, (in groups of ten,
+    # with names, eventually).
+    rows = db.player_standings()
+    count = 0
+    for row in rows:
+        print "ID# " + str(row[0]) + " | " \
+              "PLAYER 1: " + str(row[1]) + " | " \
+              "PLAYER 2: " + str(row[2]) + " | " \
+              "WINNER: " + str(row[3]) + " | " \
+              "TIMESTAMP: " + row[4]
+        count += 1
+    stop = time.time()
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                             rounding="ROUND_UP"))
+    tools.logger(("Returned %s results in %s seconds" % (count, duration[
+                    :5])), "list_matches")
+    print "Returned %s results in %s seconds" % (count, duration[:5])
 
 # Get the latest match's information
 def latest_match():
@@ -240,6 +259,7 @@ if args.delete_match_id:
 
 if args.list_results:
     print "LIST RESULTS"
+    list_matches()
 
 if args.get_result:
     print "GET RESULT BY ID"

@@ -44,7 +44,7 @@ def count_players():
     cursor.execute("SELECT * FROM players;")
     count = cursor.rowcount
     tools.logger("Retrieved " + str(count) + " rows "
-                 "from the database.", "trn.count_players()")
+                 "from the tournament.players.", "trn.count_players()")
     rows = cursor.fetchall()
     connection.commit()
     cursor.close()
@@ -88,11 +88,15 @@ def player_standings():
     """
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("")
+    cursor.execute("SELECT * FROM matches;")
+    count = cursor.rowcount
+    tools.logger("Retrieved " + str(count) + " rows "
+                 "from tournament.matches.", "trn.player_standings()")
+    rows = cursor.fetchall()
     connection.commit()
     cursor.close()
     connection.close()
-    return 0
+    return rows
 
 
 def report_match(winner, loser, player_1, player_2):
