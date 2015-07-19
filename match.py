@@ -241,8 +241,7 @@ def list_matches():
     # with names, eventually).
     start = time.time()
     results = db.player_standings()
-    table = PrettyTable(['#', 'UNIQUE ID#', 'PLAYER 1',
-                         'PLAYER 2', 'WINNER', 'TIME'])
+    table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
@@ -259,16 +258,44 @@ def list_matches():
 # Get the latest match's information
 def latest_match():
     print "The Latest Match"
-    count = 1
+    count = 0
     start = time.time()
-    db.search("matches", "LATEST", count)
+    results = db.search("matches", "LATEST", count)
     tools.logger("Retrieved latest result.", "lookup")
-    table = PrettyTable(['ID#', 'PLAYER 1', 'PLAYER 2', 'WINNER', 'TIME'])
+    table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
+    table.align = 'l'
+    for row in results:
+        count += 1
+        table.add_row([count, row[0], row[1], row[2], row[3], row[4]])
+    print table
+    stop = time.time()
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+                 "list_matches")
+    print "Returned %s results in %s seconds" % (count, duration[:5])
 
 
 # Get the latest match's information
 def lookup_match():
     match = raw_input("Please enter a match ID to lookup: ")
+    print "Match Lookup"
+    count = 0
+    start = time.time()
+    results = db.search("matches", "ID", match)
+    tools.logger("Retrieved latest result.", "lookup")
+    table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
+    table.align = 'l'
+    for row in results:
+        count += 1
+        table.add_row([count, row[0], row[1], row[2], row[3], row[4]])
+    print table
+    stop = time.time()
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+                 "list_matches")
+    print "Returned %s results in %s seconds" % (count, duration[:5])
 
 
 # Rank Players by Number of Wins
@@ -350,16 +377,16 @@ parser.add_argument('--swiss-match',
                     help='Create a new match with swiss pairing.')
 
 # GET LATEST RESULTS function
-parser.add_argument('--get-latest',
-                    dest='get_latest',
+parser.add_argument('--latest-match',
+                    dest='latest_match',
                     action='store_true',
                     default=False,
                     help='Get the results from the latest match.')
 
 # GET LATEST RESULTS function
-parser.add_argument('--get-result',
-                    dest='get_result',
-                    action='store',
+parser.add_argument('--lookup-match',
+                    dest='lookup_match',
+                    action='store_true',
                     help='Get the results from a specific match by ID.')
 
 # DELETE PLAYER function
@@ -432,10 +459,10 @@ if args.delete_match:
 if args.list_results:
     list_matches()
 
-if args.get_result:
+if args.lookup_match:
     lookup_match()
 
-if args.get_latest:
+if args.latest_match:
     latest_match()
 
 if args.audit_log:
