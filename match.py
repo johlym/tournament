@@ -240,12 +240,18 @@ def list_matches():
     # display all matches in the matches table, (in groups of ten,
     # with names, eventually).
     start = time.time()
-    results = db.player_standings()
+    results = db.search("matches", "ALL", "null")
+
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
-        table.add_row([count, row[0], row[1], row[2], row[3], row[4]])
+        player = db.search("players", "CODE", row[3])
+        for entry in player:
+            name = entry[1]
+        if name == '':
+            name = "[PLAYER DELETED]"
+        table.add_row([count, row[0], row[1], row[2], name, row[4]])
     print table
     stop = time.time()
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -266,7 +272,12 @@ def latest_match():
     table.align = 'l'
     for row in results:
         count += 1
-        table.add_row([count, row[0], row[1], row[2], row[3], row[4]])
+        player = db.search("players", "CODE", row[3])
+        for entry in player:
+            name = entry[1]
+        if name == '':
+            name = "[PLAYER DELETED]"
+        table.add_row([count, row[0], row[1], row[2], name, row[4]])
     print table
     stop = time.time()
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -281,6 +292,9 @@ def lookup_match():
     match = raw_input("Please enter a match ID to lookup: ")
     print "Match Lookup"
     count = 0
+    # prevents "UnboundLocalError: referenced before assignment"
+    # that comes up if we lookup and the player was deleted.
+    name = ''
     start = time.time()
     results = db.search("matches", "ID", match)
     tools.logger("Retrieved latest result.", "lookup")
@@ -288,7 +302,12 @@ def lookup_match():
     table.align = 'l'
     for row in results:
         count += 1
-        table.add_row([count, row[0], row[1], row[2], row[3], row[4]])
+        player = db.search("players", "CODE", row[3])
+        for entry in player:
+            name = entry[1]
+        if name == '':
+            name = "[PLAYER DELETED]"
+        table.add_row([count, row[0], row[1], row[2], name, row[4]])
     print table
     stop = time.time()
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -410,8 +429,8 @@ parser.add_argument('--delete-match',
                     help='Delete a match from the match system by ID.')
 
 # LIST RESULTS function
-parser.add_argument('--list-results',
-                    dest='list_results',
+parser.add_argument('--list-matches',
+                    dest='list_matches',
                     action='store_true',
                     default=False,
                     help='List Results from a recent match.')
@@ -456,7 +475,7 @@ if args.list_players:
 if args.delete_match:
     delete_match()
 
-if args.list_results:
+if args.list_matches:
     list_matches()
 
 if args.lookup_match:
