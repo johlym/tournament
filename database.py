@@ -62,7 +62,6 @@ def count_wins(player_code):
     return number
 
 
-
 # A fancy multi-purpose function that we can use to search ANY of the tables,
 #  provided we give the right criteria.
 def search(table, criteria, keyword):
@@ -77,6 +76,8 @@ def search(table, criteria, keyword):
     elif criteria == "LATEST":
         cursor.execute("SELECT * FROM " + table + " "
                        "ORDER BY id DESC LIMIT 1;")
+    elif criteria == "ALL":
+        cursor.execute("SELECT * FROM " + table + ";")
     else:
         cursor.execute("SELECT * FROM " + table + " "
                    "WHERE " + criteria + " LIKE \'%" + keyword + "%\';")
@@ -115,23 +116,14 @@ def register_player(name, country, code):
 
 
 def player_standings():
-    # Returns a list of the players and their win records, sorted by wins.
-    #
-    # The first entry in the list should be the player in first place,
-    # or a player tied for first place if there is currently a tie.
-
-    # Returns:
-    #  A list of tuples, each of which contains (id, name, wins, matches):
-    #    id: the player's unique id (assigned by the database)
-    #    name: the player's full name (as registered)
-    #    wins: the number of matches the player has won
-    #    matches: the number of matches the player has played
+    # Return player ranking, limiting to the top five players.
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("select winner, count(winner) "
                    "FROM matches "
                    "GROUP BY winner "
-                   "ORDER BY count desc;")
+                   "ORDER BY count desc"
+                   "LIMIT 5;")
     count = cursor.rowcount
     tools.logger("Retrieved " + str(count) + " rows "
                  "from tournament.matches.", "trn.player_standings()")
