@@ -48,6 +48,21 @@ def update_player(player_id, name, country):
     connection.close()
 
 
+def count_wins(player_code):
+    # Remove all the player records from the database.
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(winner)"
+                   "FROM matches "
+                   "WHERE winner LIKE '%" + player_code + "%';")
+    number = cursor.fetchall()
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return number
+
+
+
 # A fancy multi-purpose function that we can use to search ANY of the tables,
 #  provided we give the right criteria.
 def search(table, criteria, keyword):
@@ -55,7 +70,7 @@ def search(table, criteria, keyword):
     cursor = connection.cursor()
     if criteria == "ID":
         cursor.execute("SELECT * FROM " + table + " "
-                   "WHERE " + criteria + " = " + keyword + ";")
+                       "WHERE " + criteria + " = " + keyword + ";")
     elif criteria == "LOGS":
         cursor.execute("SELECT * FROM " + table + " "
                        "ORDER BY id DESC LIMIT " + str(keyword) + ";")
@@ -87,13 +102,13 @@ def count_players():
     return rows
 
 
-def register_player(name,country):
+def register_player(name, country, code):
     # Registers a new player in the database.
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO players (name, country) "
+    cursor.execute("INSERT INTO players (name, country, code) "
                    "VALUES (\'" + name + "\',"
-                   " \'" + country + "\');")
+                   " \'" + country + "\', \'" + code + "\');")
     connection.commit()
     cursor.close()
     connection.close()
@@ -113,7 +128,10 @@ def player_standings():
     #    matches: the number of matches the player has played
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM matches;")
+    cursor.execute("select winner, count(winner) "
+                   "FROM matches "
+                   "GROUP BY winner "
+                   "ORBERY BY count desc;")
     count = cursor.rowcount
     tools.logger("Retrieved " + str(count) + " rows "
                  "from tournament.matches.", "trn.player_standings()")
@@ -124,16 +142,15 @@ def player_standings():
     return rows
 
 
-def report_match(winner, loser, player_1, player_2):
+def report_match(winner, player_1, player_2):
     # Records the outcome of a single match between two players.
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("INSERT INTO matches (player_1, player_2, winner, loser, "
+    cursor.execute("INSERT INTO matches (player_1, player_2, winner, "
                    "timestamp) "
                    "VALUES (\'" + player_1 + "\', \'" + player_2 + "\',"
-                   "\'" + winner + "\', \'" + loser + "\', \'"
-                   + timestamp + "\')")
+                   "\'" + winner + "\', \'" + timestamp + "\')")
     connection.commit()
     cursor.close()
     connection.close()

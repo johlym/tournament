@@ -31,8 +31,9 @@ def new_player():
     player_country = raw_input("Country of Origin: ")
     tools.logger("Received player country " + player_country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, player_country)
+    code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
-    db.register_player(player_name,player_country)
+    db.register_player(player_name, player_country, code)
     stop = time.time()
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                              rounding="ROUND_UP"))
@@ -136,10 +137,16 @@ def list_players():
     tools.logger("Requesting all players in the database.", "list_players()")
     start = time.time()
     results = db.count_players()
+
+    # table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Wins'])
     table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
     table.align = "l"
     for row in results:
         count += 1
+        # wins = db.count_wins(row[3])
+        # for win in wins:
+        #     wincount = win[0]
+        # table.add_row([count, row[0], row[1], row[2], wincount])
         table.add_row([count, row[0], row[1], row[2]])
     print table
     stop = time.time()
@@ -149,18 +156,24 @@ def list_players():
     tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
                  "list_players()")
     print "Returned %s results in %s seconds" % (count, duration[:5])
-    # need to add code to get their win counts.
-
 
 # MATCH ORIENTED FUNCTIONS #
 
 
 # Initiate a match. Player_1 and Player_2 should be IDs.
 def go_match():
+    player_1_code = ''
+    player_2_code = ''
     player_1 = raw_input("ID# for Player 1: ")
     player_2 = raw_input("ID# for Player 2: ")
     tools.logger("Starting match between " + player_1 + " and " + player_2,
                  "go_match()")
+    code_lookup = db.search("players", "ID", player_1)
+    for row in code_lookup:
+        player_1_code = row[3]
+    code_lookup = db.search("players", "ID", player_2)
+    for row in code_lookup:
+        player_2_code = row[3]
     print "Match between %s and %s" % (player_1, player_2)
     # Randomly pick between one or two.
     random_int = random.randrange(1, 3)
@@ -169,17 +182,15 @@ def go_match():
     # If the random number is even: player 1 wins. Else: player 2 wins.
     if random_int == 2:
         # the random number is even:
-        print player_1 + "wins!"
+        print player_1 + " wins!"
         tools.logger("Stated that player 1 wins.", "go_match()")
-        winner = player_1
-        loser = player_2
+        winner = player_1_code
     else:
         # the random number is odd:
         print "Player " + player_2 + " wins!"
         tools.logger("Stated that player 2 wins.", "go_match()")
-        winner = player_2
-        loser = player_1
-    db.report_match(winner, loser, player_1, player_2)
+        winner = player_2_code
+    db.report_match(winner, player_1, player_2)
     tools.logger("Reported win to database.", "go_match()")
     print "Finished."
 
