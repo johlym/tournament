@@ -131,7 +131,7 @@ def player_standings():
     cursor.execute("select winner, count(winner) "
                    "FROM matches "
                    "GROUP BY winner "
-                   "ORBERY BY count desc;")
+                   "ORDER BY count desc;")
     count = cursor.rowcount
     tools.logger("Retrieved " + str(count) + " rows "
                  "from tournament.matches.", "trn.player_standings()")
