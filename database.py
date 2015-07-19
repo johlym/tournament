@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # 
-# tournament.py -- implementation of a Swiss-system tournament
+# database.py -- implementation of a Swiss-system tournament
+# based on tournament.py from udacity.
 #
 import config as cfg
 import datetime
@@ -23,7 +24,6 @@ def delete_matches():
     connection.commit()
     cursor.close()
     connection.close()
-    return 0
 
 
 def delete_players():
@@ -34,7 +34,28 @@ def delete_players():
     connection.commit()
     cursor.close()
     connection.close()
-    return 0
+
+
+# A fancy multi-purpose function that we can use to search ANY of the tables,
+#  provided we give the right criteria.
+def search(table, criteria, keyword):
+    """Search one of the tables based on provided information"""
+    connection = connect()
+    cursor = connection.cursor()
+    if criteria == "ID":
+        cursor.execute("SELECT * FROM " + table + " "
+                   "WHERE " + criteria + " = " + keyword + ";")
+    elif criteria == "LOGS":
+        cursor.execute("SELECT * FROM " + table + " "
+                       "ORDER BY id DESC LIMIT " + str(keyword) + ";")
+    else:
+        cursor.execute("SELECT * FROM " + table + " "
+                   "WHERE " + criteria + " LIKE \'%" + keyword + "%\';")
+    rows = cursor.fetchall()
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return rows
 
 
 def count_players():
@@ -69,8 +90,6 @@ def register_player(name,country):
     connection.commit()
     cursor.close()
     connection.close()
-
-
 
 
 def player_standings():
@@ -117,7 +136,6 @@ def report_match(winner, loser, player_1, player_2):
     connection.commit()
     cursor.close()
     connection.close()
-    return 0
 
 
 def swiss_pairings():
