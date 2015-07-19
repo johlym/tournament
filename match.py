@@ -11,8 +11,9 @@ __author__ = 'jlyman'
 import argparse as arg
 import config as cfg
 import database as db
-import time
+import random
 import sys
+import time
 import tools
 
 
@@ -77,44 +78,68 @@ def list_players():
               "COUNTRY: " + row[2]
 
 
-# Update player information
-def update_player(match_id):
-    print "Update Player Information."
+# Update player information. This needs the player ID from the SQL database.
+def update_player(player_id):
+    print "Functionality Coming Soon."
 
 # MATCH ORIENTED FUNCTIONS #
 
 
-# Create a new match
-def new_match(player_1, player_2, match_name):
-    print "Create a New Match."
+# Initiate a match. Player_1 and Player_2 should be IDs.
+def go_match():
+    player_1 = raw_input("ID# for Player 1: ")
+    player_2 = raw_input("ID# for Player 2: ")
+    tools.logger("Starting match between " + player_1 + " and " + player_2,
+                 "go_match()")
+    print "Match between %s and %s" % (player_1, player_2)
+    # Randomly pick between one or two.
+    random_int = random.randrange(1, 3)
+    print random_int
+    tools.logger("Generated random number " + str(random_int), "go_match()")
+    # If the random number is even: player 1 wins. Else: player 2 wins.
+    if random_int == 2:
+        # the random number is even:
+        print player_1 + "wins!"
+        tools.logger("Stated that player 1 wins.", "go_match()")
+        winner = player_1
+        loser = player_2
+    else:
+        # the random number is odd:
+        print "Player " + player_2 + " wins!"
+        tools.logger("Stated that player 2 wins.", "go_match()")
+        winner = player_2
+        loser = player_1
+    db.report_match(winner, loser, player_1, player_2)
+    print "Finished."
 
-
-# Start a match
-def go_match(player_1, player_2, match_name):
-    print "Start a Match."
 
 
 # Delete an existing match
 def delete_match(match_id):
     print "Delete an Existing Match."
+    # delete a match from the matches table, using the match ID.
 
 
 # Get a list of matches based on criteria and display method
 def list_matches(criteria, method):
     print "List All Matches"
+    # display all matches in the matches table, in groups of ten.
 
 
 # Get the latest match's information
 def latest_match():
     print "The Latest Match"
+    # get the latest match in the matches table and fetch the player names to
+    # display who won and lost.
+
 
 # Rank Players by Number of Wins
 def list_win_ranking():
     print "List Ranking of Players by Wins"
+    # get list of players and their IDs.
+    # for each player, count the number of times they won in every match
 
 # Any good app keeps a log.
-
-
 
 # Using command-line arguments to control actions. User can use flags to run
 # certain, pre-defined scenarios. This will also allow for reuse of code where
@@ -129,17 +154,6 @@ parser.add_argument('--new-player',
                     help='Create a new player. Use --player-name and '
                          '--player-country if you would like to specify those'
                          'pieces of information ahead of time.')
-
-parser.add_argument('--player-name',
-                    dest='player_name',
-                    action='store',
-                    help='Your Player\'s Name. Useful for --new-player, '
-                         '--new-match, --delete-player, --get-results-by')
-
-parser.add_argument('--player-country',
-                    dest='player_country',
-                    action='store',
-                    help='Your Player\'s Country of Origin')
 
 # NEW MATCH function
 parser.add_argument('--new-match',
@@ -200,11 +214,11 @@ args = parser.parse_args()
 
 if args.new_player:
     print "CREATE A NEW PLAYER"
-    new_player(args.player_name, args.player_country)
+    new_player()
 
 if args.new_match:
     print "START A NEW MATCH"
-    new_match(args.match_players[0],args.match_players[1], args.match_name)
+    go_match()
 
 if args.delete_player:
     print "DELETE PLAYER"
