@@ -268,7 +268,7 @@ def latest_match():
 
 # Get the latest match's information
 def lookup_match():
-    print "Displaying specific match."
+    match = raw_input("Please enter a match ID to lookup: ")
 
 
 # Rank Players by Number of Wins
