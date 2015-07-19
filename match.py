@@ -36,20 +36,23 @@ def new_player():
     stop = time.time()
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                              rounding="ROUND_UP"))
-    print "Successfully created new entry in %i seconds" % duration[:5]
+    print "Successfully created new entry in %s seconds" % duration[:5]
     tools.logger("Database entry created for " + player_name + " from " +
                  player_country + ".",
                  "new_player()")
 
 
 # Delete an existing player based on their ID.
-def delete_player():
+def edit_player(option):
     # Check by ID
     method = "0"
     count = 0
     start = 0
     stop = 0
     by = ''
+    existing_name = ''
+    existing_country = ''
+    criteria = ''
     # A quick and dirty way to keep asking until we get the right answer is via
     # a WHILE loop. So long as the user DOESN'T give us "1" or "2",
     # we'll keep bugging them.
@@ -57,7 +60,8 @@ def delete_player():
     # ONE IF BY LAND, TWO IF BY SEA
     # -- Henry Wadsworth Longfellow's "Paul Revere's Ride"
     while not any(word in method for word in ['1', '2']):
-        print "In order to delete a player, first we need to look them up " \
+        print "In order to change a player's record, first we need to look " \
+              "them up " \
               "and make sure they're actually there."
         print "Here are your options:"
         print "1. By ID"
@@ -67,11 +71,13 @@ def delete_player():
         if method == "1":
             by = "ID"
             print "Looking up player by ID..."
+            criteria = raw_input("Please enter the player's ID: ")
         # 2 if by sea (name)
         if method == "2":
             by = "name"
             print "Looking up player by Name..."
-        criteria = raw_input("Please enter the player's Name: ")
+            criteria = raw_input("Please enter the player's Name: ")
+
         start = time.time()
         results = db.search("players", by, criteria)
         table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
@@ -85,17 +91,40 @@ def delete_player():
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
-                 "delete_player()")
+                 "edit_player()")
     print "Returned %s results in %s seconds" % (count, duration[:5])
     print ""
-    player = raw_input("Which player do you want to delete? [ID]")
-    start = time.time()
-    db.delete_player(player)
-    tools.logger("Deleted %s from the database" % player, "delete_player()")
-    stop = time.time()
+    if option == "delete":
+        player = raw_input("Which player do you want to delete? [ID]")
+        start = time.time()
+        db.delete_player(player)
+        tools.logger("Deleted %s from the database" % player, "edit_player()")
+        stop = time.time()
+    if option == "edit":
+        player = raw_input("Which player do you want to edit? [ID]")
+        new_name = raw_input("New Player Name [leave blank for no change]: ")
+        new_country = raw_input("New Country [leave blank for no change]: ")
+        existing = db.search("players", "ID", player)
+        for row in existing:
+            existing_name = row[1]
+            existing_country = row[2]
+        print "Editing %s..." % player
+        if not new_name:
+            player_name = existing_name
+        else:
+            player_name = new_name
+        if not new_country:
+            player_country = existing_country
+        else:
+            player_country = new_country
+        start = time.time()
+        db.update_player(player, player_name, player_country)
+        tools.logger("Updated %s." % player, "edit_player()")
+        stop = time.time()
+
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    print "Deleted %s. Took %s seconds." % (player, duration[:5])
+    print "Complete. Operation took %s seconds." % duration[:5]
 
 
 # Get a list of players based on criteria and display method.
@@ -122,10 +151,6 @@ def list_players():
     print "Returned %s results in %s seconds" % (count, duration[:5])
     # need to add code to get their win counts.
 
-
-# Update player information. This needs the player ID from the SQL database.
-def update_player():
-    print "Functionality Coming Soon."
 
 # MATCH ORIENTED FUNCTIONS #
 
@@ -197,14 +222,16 @@ def list_matches():
 # Get the latest match's information
 def latest_match():
     print "The Latest Match"
-    # get the latest match in the matches table and fetch the player names to
-    # display who won and lost.
+    count = 1
+    start = time.time()
+    db.search("matches", "LATEST", count)
+    tools.logger("Retrieved latest result.", "lookup")
+    table = PrettyTable(['ID#', 'PLAYER 1', 'PLAYER 2', 'WINNER', 'TIME'])
 
 
 # Get the latest match's information
 def lookup_match():
-    print "Lookup Match"
-    # Lookup a match by ID.
+    print "Displaying specific match."
 
 
 # Rank Players by Number of Wins
@@ -305,6 +332,13 @@ parser.add_argument('--delete-player',
                     default=False,
                     help='Delete a player from the match system with prompts.')
 
+# DELETE PLAYER function
+parser.add_argument('--edit-player',
+                    dest='edit_player',
+                    action='store_true',
+                    default=False,
+                    help='Edit a player\'s exiting information')
+
 # DELETE MATCH function
 parser.add_argument('--delete-match',
                     dest='delete_match',
@@ -347,7 +381,10 @@ if args.swiss_match:
     swiss_match()
 
 if args.delete_player:
-    delete_player()
+    edit_player("delete")
+
+if args.edit_player:
+    edit_player("edit")
 
 if args.list_players:
     list_players()

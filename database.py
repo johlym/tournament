@@ -36,6 +36,18 @@ def delete_player(player_id):
     connection.close()
 
 
+def update_player(player_id, name, country):
+    # Remove all the player records from the database.
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("UPDATE players "
+                   "SET name='" + name + "', country='" + country + "'"
+                   "WHERE id=" + player_id + ";")
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
 # A fancy multi-purpose function that we can use to search ANY of the tables,
 #  provided we give the right criteria.
 def search(table, criteria, keyword):
@@ -47,6 +59,9 @@ def search(table, criteria, keyword):
     elif criteria == "LOGS":
         cursor.execute("SELECT * FROM " + table + " "
                        "ORDER BY id DESC LIMIT " + str(keyword) + ";")
+    elif criteria == "LATEST":
+        cursor.execute("SELECT * FROM " + table + " "
+                       "ORDER BY id DESC LIMIT 1;")
     else:
         cursor.execute("SELECT * FROM " + table + " "
                    "WHERE " + criteria + " LIKE \'%" + keyword + "%\';")
