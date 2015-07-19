@@ -10,14 +10,14 @@ import tools
 
 
 def connect():
-    """Connect to the PostgreSQL database.  Returns a database connection."""
+    # Connect to the PostgreSQL database.  Returns a database connection.
     return psycopg2.connect(database=cfg.DATABASE_NAME,
                             user=cfg.DATABASE_USERNAME,
                             password=cfg.DATABASE_PASSWORD)
 
 
-def delete_matches():
-    """Remove all the match records from the database."""
+def delete_matche():
+    # Remove all the match records from the database.
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("")
@@ -26,11 +26,11 @@ def delete_matches():
     connection.close()
 
 
-def delete_players():
-    """Remove all the player records from the database."""
+def delete_player(player_id):
+    # Remove all the player records from the database.
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("")
+    cursor.execute("DELETE FROM players WHERE id = " + player_id + ";")
     connection.commit()
     cursor.close()
     connection.close()
@@ -39,7 +39,6 @@ def delete_players():
 # A fancy multi-purpose function that we can use to search ANY of the tables,
 #  provided we give the right criteria.
 def search(table, criteria, keyword):
-    """Search one of the tables based on provided information"""
     connection = connect()
     cursor = connection.cursor()
     if criteria == "ID":
@@ -59,7 +58,7 @@ def search(table, criteria, keyword):
 
 
 def count_players():
-    """Returns the number of players currently registered."""
+    # Returns the number of players currently registered.
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM players;")
@@ -74,14 +73,7 @@ def count_players():
 
 
 def register_player(name,country):
-    """Adds a player to the tournament database.
-  
-    The database assigns a unique serial id number for the player.  (This
-    should be handled by your SQL database schema, not in your Python code.)
-  
-    Args:
-      name: the player's full name (need not be unique).
-    """
+    # Registers a new player in the database.
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("INSERT INTO players (name, country) "
@@ -93,18 +85,17 @@ def register_player(name,country):
 
 
 def player_standings():
-    """Returns a list of the players and their win records, sorted by wins.
+    # Returns a list of the players and their win records, sorted by wins.
+    #
+    # The first entry in the list should be the player in first place,
+    # or a player tied for first place if there is currently a tie.
 
-    The first entry in the list should be the player in first place, or a player
-    tied for first place if there is currently a tie.
-
-    Returns:
-      A list of tuples, each of which contains (id, name, wins, matches):
-        id: the player's unique id (assigned by the database)
-        name: the player's full name (as registered)
-        wins: the number of matches the player has won
-        matches: the number of matches the player has played
-    """
+    # Returns:
+    #  A list of tuples, each of which contains (id, name, wins, matches):
+    #    id: the player's unique id (assigned by the database)
+    #    name: the player's full name (as registered)
+    #    wins: the number of matches the player has won
+    #    matches: the number of matches the player has played
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM matches;")
@@ -119,12 +110,7 @@ def player_standings():
 
 
 def report_match(winner, loser, player_1, player_2):
-    """Records the outcome of a single match between two players.
-
-    Args:
-      winner:  the id number of the player who won
-      loser:  the id number of the player who lost
-    """
+    # Records the outcome of a single match between two players.
     timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     connection = connect()
     cursor = connection.cursor()
