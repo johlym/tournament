@@ -80,7 +80,7 @@ def search(table, criteria, keyword):
         cursor.execute("SELECT * FROM " + table + ";")
     else:
         cursor.execute("SELECT * FROM " + table + " "
-                   "WHERE " + criteria + " LIKE \'%" + keyword + "%\';")
+                       "WHERE " + criteria + " LIKE \'%" + keyword + "%\';")
     rows = cursor.fetchall()
     connection.commit()
     cursor.close()
