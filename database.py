@@ -3,8 +3,10 @@
 # tournament.py -- implementation of a Swiss-system tournament
 #
 import config as cfg
+import datetime
 import psycopg2
 import tools
+
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
@@ -61,13 +63,12 @@ def register_player(name,country):
     """
     connection = connect()
     cursor = connection.cursor()
-    execution = cursor.execute("INSERT INTO players (name, country) "
+    cursor.execute("INSERT INTO players (name, country) "
                    "VALUES (\'" + name + "\',"
                    " \'" + country + "\');")
     connection.commit()
     cursor.close()
     connection.close()
-    return execution
 
 
 
@@ -94,16 +95,21 @@ def player_standings():
     return 0
 
 
-def report_match(winner, loser):
+def report_match(winner, loser, player_1, player_2):
     """Records the outcome of a single match between two players.
 
     Args:
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("")
+    cursor.execute("INSERT INTO matches (player_1, player_2, winner, loser, "
+                   "timestamp) "
+                   "VALUES (\'" + player_1 + "\', \'" + player_2 + "\',"
+                   "\'" + winner + "\', \'" + loser + "\', \'"
+                   + timestamp + "\')")
     connection.commit()
     cursor.close()
     connection.close()
