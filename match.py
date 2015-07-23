@@ -217,8 +217,17 @@ def go_match():
 
 # match up each of the players in the database and swiss-ify them.
 def swiss_match():
-
     print ""
+    # get the list of players
+    # put them in two dicts with structure {"1":"SDKLZ","2":"EKDNA", etc}
+    # remove last odd player, if any
+        # assign as BYE
+    # flip one dict
+    # iterate through both.
+    # print.
+    # cake.
+    # profit.
+    # cake profit.
 
 
 # Delete an existing match

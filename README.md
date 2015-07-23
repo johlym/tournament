@@ -60,8 +60,3 @@ recorded, anyway, and you can view the entries.
 
 * Since player `ID` numbers are unique, an `ID` of a deleted player will never 
 belong to another player so in its place you'll see `[DELETED]`.
-
-## Special Thanks
-
-I borrowed a bit of code from [Jeff Hoogland](http://github.com/jeffhoogland) 
-for the swiss tournament function. Thanks, Jeff!
