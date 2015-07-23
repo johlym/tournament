@@ -18,6 +18,17 @@ import sys
 import time
 import tools
 
+req_version = (2,7)
+cur_version = sys.version_info
+
+if not cur_version >= req_version:
+    print "This app was designed to run on at least Python 2.7. You're not " \
+          "running at least 2.7, so keep it mind it might not work right, " \
+          "if at all."
+    print "We're going to wait a moment to let that sink in or give you a " \
+          "chance to break out."
+    time.sleep(10.0) # long enough, I think.
+
 
 # PLAYER ORIENTED FUNCTIONS #
 
@@ -204,8 +215,9 @@ def go_match():
     print "Finished."
 
 
+# match up each of the players in the database and swiss-ify them.
 def swiss_match():
-    # create a new match using the swiss paring system.
+
     print ""
 
 
@@ -409,9 +421,7 @@ parser.add_argument('--new-player',
                     dest='new_player',
                     action='store_true',
                     default=False,
-                    help='Create a new player. Use --player-name and '
-                         '--player-country if you would like to specify those'
-                         'pieces of information ahead of time.')
+                    help='Create a new player.')
 
 # NEW MATCH function
 parser.add_argument('--new-match',
@@ -447,7 +457,7 @@ parser.add_argument('--delete-player',
                     default=False,
                     help='Delete a player from the match system with prompts.')
 
-# DELETE PLAYER function
+# EDIT PLAYER function
 parser.add_argument('--edit-player',
                     dest='edit_player',
                     action='store_true',
