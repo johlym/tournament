@@ -301,8 +301,8 @@ def lookup_match():
     match = raw_input("Please enter a match ID to lookup: ")
     print "Match Lookup"
     count = 0
-    # prevents "UnboundLocalError: referenced before assignment"
-    # that comes up if we lookup and the player was deleted.
+    # defining 'name' here prevents "UnboundLocalError: referenced before
+    # assignment" that comes up if we lookup and the player was deleted.
     name = ''
     start = time.time()
     results = db.search("matches", "ID", match)
