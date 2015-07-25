@@ -18,7 +18,7 @@ import sys
 import time
 import tools
 
-req_version = (2,7)
+req_version = (2, 7)
 cur_version = sys.version_info
 
 if not cur_version >= req_version:
@@ -27,7 +27,7 @@ if not cur_version >= req_version:
           "if at all."
     print "We're going to wait a moment to let that sink in or give you a " \
           "chance to break out."
-    time.sleep(10.0) # long enough, I think.
+    time.sleep(10.0)  # long enough, I think.
 
 
 # PLAYER ORIENTED FUNCTIONS #
@@ -47,7 +47,7 @@ def new_player():
     db.register_player(player_name, player_country, code)
     stop = time.time()
     duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                             rounding="ROUND_UP"))
+                                                         rounding="ROUND_UP"))
     print "Successfully created new entry in %s seconds" % duration[:5]
     tools.logger("Database entry created for " + player_name + " from " +
                  player_country + ".",
@@ -172,13 +172,14 @@ def list_players():
 
 
 # Initiate a match. Player_1 and Player_2 should be IDs.
-def go_match():
+def go_match(match_type, player_1, player_2):
     player_1_code = ''
     player_2_code = ''
     player_1_name = ''
     player_2_name = ''
-    player_1 = raw_input("ID# for Player 1: ")
-    player_2 = raw_input("ID# for Player 2: ")
+    if match_type == "REG":
+        player_1 = raw_input("ID# for Player 1: ")
+        player_2 = raw_input("ID# for Player 2: ")
     tools.logger("Starting match between " + player_1 + " and " + player_2,
                  "go_match()")
     code_lookup = db.search("players", "ID", player_1)
@@ -217,17 +218,91 @@ def go_match():
 
 # match up each of the players in the database and swiss-ify them.
 def swiss_match():
-    print ""
-    # get the list of players
-    # put them in two dicts with structure {"1":"SDKLZ","2":"EKDNA", etc}
-    # remove last odd player, if any
-        # assign as BYE
-    # flip one dict
-    # iterate through both.
-    # print.
+    bye = ''
+    round_number = 0
+    start = time.time()
+    players_list1 = db.count_players()
+    # Count the number of players in the list
+    count = len(players_list1)
+    tools.logger("Found %i players in list for swiss matchups." % count,
+                 "swiss_match()")
+    # If there isn't an even amount:
+    if count % 2:
+        tools.logger("Popping off the odd player (#%i) out." % count,
+                     "swiss_match()")
+        # simple math.
+        bye = players_list1[count - 1]
+        players_list1.pop(count - 1)
+    # Since it's technically pure coincidence that the entries were in order,
+    # we need to explicitly sort them. Defaults to the ID for sorting as it's
+    # the first non-symbol in each entry.
+    players_list1 = sorted(players_list1)
+    # Flip the second dict; faster than using the reversed() builtin.
+    players_list2 = sorted(players_list1, reverse=True)
+    print "The matchups are as follows:"
+
+    table_master = PrettyTable(["TEAM A", "TEAM B"])
+    table_master.align = "c"
+    table_master.hrules = False
+    table_master.vrules = True
+    table_master.left_padding_width = 0
+    table_master.right_padding_width = 0
+    tools.logger("Generated MASTER table for display.", "swiss_match()")
+    table_slave_a = PrettyTable(["#", "NAME", "COUNTRY"])
+    table_slave_a.align = "l"
+    table_slave_a.border = False
+    for a in players_list1:
+        table_slave_a.add_row([a[0], a[1], a[2]])
+    if bye:
+        table_slave_a.add_row([bye[0], bye[1], bye[2]])
+    tools.logger("Generated SLAVE A table for display.", "swiss_match()")
+    table_slave_b = PrettyTable(["#", "NAME", "COUNTRY"])
+    table_slave_b.align = "l"
+    table_slave_b.border = False
+    for b in players_list2:
+        table_slave_b.add_row([b[0], b[1], b[2]])
+    if bye:
+        table_slave_b.add_row(["--", "------BYE------", "--------"])
+    tools.logger("Generated SLAVE B table for display.", "swiss_match()")
+    table_master.add_row([table_slave_a, table_slave_b])
+    tools.logger("Generated COMPLETE table for display", "swiss_match()")
+    print table_master
+    stop = time.time()
+    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                         rounding="ROUND_UP"))
+    print "Complete. Operation took %s seconds." % duration[:5]
+    run_swiss_matchup = raw_input("Do you want to run matches through this "
+                                  "list of players?\n(Keep in mind: A "
+                                  "player in BYE will not be run) [Y/n]")
+
+    while run_swiss_matchup in ["Yes", "Y", "y"]:
+        tools.logger("User opted to run matches against swiss matchups.",
+                     "swiss_match()")
+        # smoosh (technical term) the two lists together and make them fight
+        # for their dinner!
+        start = time.time()
+        for a, b in zip(players_list1, players_list2):
+            round_number += 1
+            print "Round %i..." % round_number
+            tools.logger("Initiating round %i against go_match()" %
+                         round_number, "swiss_match()")
+            go_match("SWISS", str(a[0]), str(b[0]))
+            tools.logger("Completed round %i against go_match()" %
+                         round_number, "swiss_match()")
+            print "Round %i complete.\n" % round_number
+        stop = time.time()
+        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                        rounding="ROUND_UP"))
+        print "Complete. Operation took %s seconds." % dur[:5]
+        break  # remove if you're psycho.
+    else:
+        tools.logger("User opted to not run matches against swiss matchups.",
+                     "swiss_match()")
+        print "User neglected to run matches."
+    print "Swiss matchups complete."
     # cake.
     # profit.
-    # cake profit.
+    # THE CAKE IS A LIE.
 
 
 # Delete an existing match
@@ -396,8 +471,8 @@ def display_log():
     tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
                  "display_log()")
     print "Returned %s results in %s seconds" % (count, duration[:5])
-    all = raw_input("Want to see all entries? [Yes/No]: ")
-    if all == "Yes":
+    see_all = raw_input("Want to see all entries? [Yes/No]: ")
+    if see_all == "Yes":
         tools.logger("User requested ALL entries.", "display_log()")
         count = 9999999
         start = time.time()
@@ -411,13 +486,14 @@ def display_log():
         print table
         stop = time.time()
         tools.logger("Printed audit log table.", "display_log()")
-        duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                         rounding="ROUND_UP"))
         tools.logger(("Returned %i results in %s seconds" %
-                      (count, duration[:5])), "display_log()")
-        print "Returned %s results in %s seconds" % (count, duration[:5])
+                      (count, dur[:5])), "display_log()")
+        print "Returned %s results in %s seconds" % (count, dur[:5])
     else:
         print "Ok."
+
 
 # Using command-line arguments to control actions. User can use flags to run
 # certain, pre-defined scenarios. This will also allow for reuse of code where
@@ -516,7 +592,7 @@ if args.new_player:
     new_player()
 
 if args.new_match:
-    go_match()
+    go_match("REG", "", "")
 
 if args.swiss_match:
     swiss_match()
