@@ -14,7 +14,7 @@ before_install:
 - pip install PrettyTable
 - pip install codecov
 script:
-- if [[ $TRAVIS_PYTHON_VERSION == 2.6.9 ]]; then python unittests.py -v
-- if [[ $TRAVIS_PYTHON_VERSION == 2.7.9 ]]; then python unittests.py -b -v
+- if [[ $TRAVIS_PYTHON_VERSION == 2.6.9 ]]; then python unittests.py -v; fi
+- if [[ $TRAVIS_PYTHON_VERSION == 2.7.9 ]]; then python unittests.py -b -v; fi
 after_success:
   codecov
