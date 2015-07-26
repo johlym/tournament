@@ -6,7 +6,6 @@ python:
 addons:
   postgresql: "9.4"
 before_script:
-- psql -c 'create database tournament;' -U postgres
 - psql -c tournament.sql tournament; -U postgres
 before_install:
 - pip install psycopg2
