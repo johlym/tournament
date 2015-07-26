@@ -44,27 +44,27 @@ class TestVerifyVersionTooLowStatusReportSuccess(unittest.TestCase):
 
 
 class TestCommandLineArguments(BaseTestCase):
-    def test_no_argument_new_player(self):
+    def test_arg_new_player(self):
         """Script should reject if --new-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--new-player"])
 
-    def test_no_argument_edit_player(self):
+    def test_arg_edit_player(self):
         """Script should reject if --edit-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--edit-player"])
 
-    def test_no_argument_delete_player(self):
+    def test_arg_delete_player(self):
         """Script should reject if --edit-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--delete-player"])
 
-    def test_no_argument_lookup_match(self):
+    def test_arg_lookup_match(self):
         """Script should reject if --edit-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--lookup-match"])
 
-    def test_no_argument_delete_match(self):
+    def test_arg_delete_match(self):
         """Script should reject if --edit-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--delete-match"])
@@ -163,7 +163,7 @@ class TestListPlayers(BaseTestCase):
         match.new_player(player_name=player_name, country=player_country)
         self.assertEqual(match.list_players(), 0)
 
-    def test_list_players_100(self):
+    def test_100_players(self):
         """list_players() displays 100 entries in tournament.Players"""
         for i in range(1, 101):
             player_name = "James Tester Rogan"
@@ -172,7 +172,7 @@ class TestListPlayers(BaseTestCase):
                              country=player_country), 0)
         self.assertEqual(match.list_players(), 0)
 
-    def test_list_players_1000(self):
+    def test_1000_players(self):
         """list_players() displays 1000 entries in tournament.Players"""
         for i in range(1, 1001):
             player_name = "James Tester Rogan"
@@ -181,7 +181,7 @@ class TestListPlayers(BaseTestCase):
                              country=player_country), 0)
         self.assertEqual(match.list_players(), 0)
 
-    def test_list_players_limit5(self):
+    def test_limit5_players(self):
         """list_players() should honor a preset limit"""
         for i in range(1, 6):
             player_name = "James Tester Rogan"
@@ -190,15 +190,41 @@ class TestListPlayers(BaseTestCase):
                              country=player_country), 0)
         self.assertEqual(match.list_players(limit="5"), 0)
 
-    def test_list_players_limit_contains_letter(self):
+    def test_limit_contains_letter(self):
         """list_players() throws if limit contains a letter"""
         with self.assertRaises(AttributeError):
             match.list_players(limit="A")
 
-    def test_list_players_limit_contains_symbol(self):
+    def test_limit_contains_symbol(self):
         """list_players() throws if limit contains a symbol"""
         with self.assertRaises(AttributeError):
             match.list_players(limit="@")
+            
+
+class TestNewMatch(BaseTestCase):
+    def test_new_match(self):
+        """go_match() returns 0 when a match was successful"""
+        
+    def test_less_than_two_players(self):
+        """go_match() throws if both players are not provided"""
+        
+    def test_player_1_not_valid(self):
+        """go_match() throws if player 1 is not valid"""
+        
+    def test_player_2_not_valid(self):
+        """go_match() throws if player 2 is not valid"""
+        
+    def test_player_1_contains_letter(self):
+        """go_match() throws if player 1 ID contains letter"""
+        
+    def test_player_1_contains_symbol(self):
+        """go_match() throws if player 1 ID contains symbol"""
+        
+    def test_player_2_contains_letter(self):
+        """go_match() throws if player 2 ID contains letter"""
+        
+    def test_player_2_contains_symbol(self):
+        """go_match() throws if player 2 ID contains symbol"""
 
 if __name__ == '__main__':
     unittest.main()

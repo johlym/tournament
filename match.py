@@ -98,7 +98,6 @@ def edit_player(option="", player="", new_name="", new_country=""):
 def list_players(limit=""):
     count = 0
     print "List All Players."
-
     tools.logger("Requesting all players in the database.", "list_players()")
     start = time.time()
     if limit:
@@ -136,16 +135,13 @@ def list_players(limit=""):
 
 
 # Initiate a match. Player_1 and Player_2 should be IDs.
-def go_match(match_type="REG", player_1="", player_2=""):
+def go_match(player_1="", player_2=""):
     player_1_code = ''
     player_2_code = ''
     player_1_name = ''
     player_2_name = ''
-    if match_type == "REG":
-        if not player_1:
-            player_1 = raw_input("ID# for Player 1: ")
-        if not player_2:
-            player_2 = raw_input("ID# for Player 2: ")
+    if not (player_1 and player_2):
+        raise AttributeError("Both player IDs need to be provided.")
     tools.logger("Starting match between " + player_1 + " and " + player_2,
                  "go_match()")
     code_lookup = db.search("players", "ID", player_1)
@@ -180,7 +176,8 @@ def go_match(match_type="REG", player_1="", player_2=""):
     db.report_match(winner, player_1, player_2)
     tools.logger("Reported win to database.", "go_match()")
     print "Finished."
-    return 0
+    status = 0
+    return status
 
 
 # match up each of the players in the database and swiss-ify them.
@@ -253,7 +250,7 @@ def swiss_match():
             print "Round %i..." % round_number
             tools.logger("Initiating round %i against go_match()" %
                          round_number, "swiss_match()")
-            go_match(match_type="SWISS", player_1=str(a[0]), player_2=str(b[0]))
+            go_match(player_1=str(a[0]), player_2=str(b[0]))
             tools.logger("Completed round %i against go_match()" %
                          round_number, "swiss_match()")
             print "Round %i complete.\n" % round_number
