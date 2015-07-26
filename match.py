@@ -46,8 +46,7 @@ def new_player(player_name="", country=""):
         raise AttributeError("Player name is invalid. (contains symbol(s))")
     tools.logger("Received player name " + player_name, "new_player()")
     if not country:
-        print "Please enter the player's Country of Origin: "
-        country = raw_input("Country of Origin: ")
+        raise SystemExit("Country of Origin Not Provided.")
     tools.logger("Received player country " + country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
@@ -321,7 +320,7 @@ def list_matches():
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
-    return [0, results]
+    return 0
 
 
 # Get the latest match's information
@@ -363,6 +362,8 @@ def lookup_match(match=""):
     name = ''
     start = time.time()
     results = db.search("matches", "ID", match)
+    if not results:
+        raise SystemExit("No Match Found.")
     tools.logger("Retrieved latest result.", "lookup")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
@@ -414,7 +415,7 @@ def list_win_ranking():
 
 
 # Any good app keeps a log.
-def display_log():
+def display_log(see_all=False):
     tools.logger("Displaying log entries.", "display_log()")
     count = 20
     print "Displaying last 20 entries."
@@ -434,8 +435,7 @@ def display_log():
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "display_log()")
     print "Returned %s results in %s seconds" % (count, dur[:5])
-    see_all = raw_input("Want to see all entries? [Yes/No]: ")
-    if see_all == "Yes":
+    if see_all:
         tools.logger("User requested ALL entries.", "display_log()")
         count = 9999999
         start = time.time()
@@ -451,7 +451,7 @@ def display_log():
         tools.logger("Printed audit log table.", "display_log()")
         dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                         rounding="ROUND_UP"))
-        tools.logger(("Returned %i results in %s seconds" %
+        tools.logger(("Returned max %i results in %s seconds" %
                       (count, dur[:5])), "display_log()")
         print "Returned %s results in %s seconds" % (count, dur[:5])
     else:

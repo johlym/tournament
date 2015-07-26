@@ -17,7 +17,7 @@ class BaseTestCase(unittest.TestCase):
 
 
 class TestVerifyCheckVersionMessage(BaseTestCase):
-    def test_trivialArg(self):
+    def test_wait_time(self):
         """check_version() is waiting the correct time (3.0s)"""
         start = time.time()
         match.check_version((2, 4))
@@ -72,33 +72,40 @@ class TestCommandLineArguments(BaseTestCase):
 
 
 class TestNewPlayer(BaseTestCase):
-    def test_catch_name_contains_integer(self):
+    def test_name_contains_integer(self):
         """new_player() should reject if name contains integer"""
         with self.assertRaises(AttributeError):
             match.new_player(player_name="1")
 
-    def test_catch_name_less_two_characters(self):
+    def test_name_less_two_characters(self):
         """new_player() should reject if name is less than two characters"""
         with self.assertRaises(AttributeError):
             match.new_player(player_name="a")
 
-    def test_catch_name_contains_symbols(self):
+    def test_name_contains_symbols(self):
         """new_player() should reject if name contains symbols"""
         with self.assertRaises(AttributeError):
             match.new_player(player_name="J!mes Dean")
 
-    def test_check_name_first_and_last(self):
+    def test_name_first_and_last(self):
         """new_player() should reject if both a first and last name aren't
         present"""
         with self.assertRaises(AttributeError):
             match.new_player(player_name="James")
 
-    def test_scenario_player_has_three_word_name(self):
+    def test_player_has_three_word_name(self):
         """new_player() should return 0 if player is given a middle name"""
         player_name = "James Dean Rogan"
         player_country = "United States"
         self.assertEqual(0, match.new_player(player_name=player_name,
                                              country=player_country))
+
+    def test_country_not_provided(self):
+        """new_player() should return 0 if player is given a middle name"""
+        player_name = "James Dean Rogan"
+        player_country = ""
+        with self.assertRaises(SystemExit):
+            match.new_player(player_name=player_name, country=player_country)
 
     def test_add_new_player(self):
         """new_player() should return 0 if adding new player was successful"""
@@ -132,28 +139,28 @@ class TestEditPlayer(BaseTestCase):
         s = str(r[0][0])
         self.assertEquals(match.edit_player(option="delete", player=s), 0)
 
-    def test_check_bad_option(self):
+    def test_bad_option(self):
         """edit_player() throws when passed a bad option"""
         with self.assertRaises(AttributeError):
             match.edit_player(option="bad")
 
-    def test_check_edit_missing_new_info(self):
+    def test_edit_missing_new_info(self):
         """edit_player() throws when both new_name and new_country are not
         specified"""
         with self.assertRaises(AttributeError):
             match.edit_player(option="edit", new_name="Joan Jett")
 
-    def test_check_no_player_id(self):
+    def test_no_player_id(self):
         """Script should reject if --edit-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--edit-player"])
 
-    def test_check_delete_invalid_player_id(self):
+    def test_delete_invalid_player_id(self):
         """edit_player() should throw if the player ID is invalid"""
         with self.assertRaises(AttributeError):
             match.edit_player(option="delete", player="38471237401238")
 
-    def test_check_edit_invalid_player_id(self):
+    def test_edit_invalid_player_id(self):
         """edit_player() should throw if the player ID is invalid"""
         with self.assertRaises(AttributeError):
             match.edit_player(option="delete", player="38471237401238",
@@ -334,11 +341,97 @@ class TestSwissMatching(BaseTestCase):
 
 
 class TestDeleteMatch(BaseTestCase):
+    def setUp(self):
+        createdb.drop()
+        createdb.create()
+        for i in range(1, 14):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+
     def test_list_matches(self):
         """list_match() function executes without issue"""
 
     def test_no_matches_found(self):
         """list_match() throws SystemExit when no matches found"""
+
+
+class TestLatestMatch(BaseTestCase):
+    def setUp(self):
+        createdb.drop()
+        createdb.create()
+        for i in range(1, 14):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+
+    def test_latest_match(self):
+        """latest_match() function executes without issue"""
+
+    def test_latest_match_not_found(self):
+        """latestMatch() throws SystemExit when no match is found"""
+
+
+class TestLookupMatch(BaseTestCase):
+    def setUp(self):
+        createdb.drop()
+        createdb.create()
+        for i in range(1, 14):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+
+    def test_lookup_match(self):
+        """lookup_match() function executes without issue when all given data
+        is valid and searched-for match is present"""
+
+    def test_id_not_provided(self):
+        """lookup_match() throws SystemExit when match ID is not provided"""
+
+    def test_id_contains_alpha(self):
+        """lookup_match() throws AttributeError when match ID contains or is
+        an alpha character"""
+
+    def test_id_contains_symbol(self):
+        """lookup_match() throws AttributeError when match ID contains or is
+        a symbol"""
+
+    def test_match_not_found(self):
+        """lookup_match() throws SystemExit when no match is found"""
+
+
+class TestListWinRanking(BaseTestCase):
+    def setUp(self):
+        """set up"""
+
+    def test_list_win_ranking(self):
+        """list_win_ranking() function executes without issue"""
+
+    def test_no_players(self):
+        """list_win_ranking() throws SystemExit when there are no players to
+        rank"""
+
+    def test_no_matches(self):
+        """list_win_ranking() throws SystemExit when there are no matches to
+        calculate wins against."""
+
+
+class TestAuditLog(BaseTestCase):
+    def setUp(self):
+        """set up"""
+
+    def test_write_log_entry(self):
+        """Can write a log entry to the auditlog table"""
+
+    def test_display_log_entries(self):
+        """display_log() can display log entries"""
+
+    def test_no_log_entries(self):
+        """display_log() throws SystemExit when there are no log entries to
+        display"""
 
 if __name__ == '__main__':
     unittest.main(verbosity=3, buffer=True)
