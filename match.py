@@ -34,9 +34,10 @@ if not cur_version >= req_version:
 
 
 # Create a new player based on their name and country of origin.
-def new_player():
-    print "Please enter the player's Name: "
-    player_name = raw_input("Player's Name: ")
+def new_player(player_name=""):
+    if not player_name:
+        print "Please enter the player's Name: "
+        player_name = raw_input("Player's Name: ")
     tools.logger("Received player name " + player_name, "new_player()")
     print "Please enter the player's Country of Origin: "
     player_country = raw_input("Country of Origin: ")
@@ -46,52 +47,51 @@ def new_player():
     start = time.time()
     db.register_player(player_name, player_country, code)
     stop = time.time()
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    print "Successfully created new entry in %s seconds" % duration[:5]
+    print "Successfully created new entry in %s seconds" % dur[:5]
     tools.logger("Database entry created for " + player_name + " from " +
                  player_country + ".",
                  "new_player()")
 
 
 # Delete an existing player based on their ID.
-def edit_player(option):
-    # Check by ID
-    method = "0"
+def edit_player(method="", option="", player=""):
     count = 0
     start = 0
     stop = 0
-    by = ''
     existing_name = ''
     existing_country = ''
     criteria = ''
-    # A quick and dirty way to keep asking until we get the right answer is via
-    # a WHILE loop. So long as the user DOESN'T give us "1" or "2",
-    # we'll keep bugging them.
-
-    # ONE IF BY LAND, TWO IF BY SEA
-    # -- Henry Wadsworth Longfellow's "Paul Revere's Ride"
-    while not any(word in method for word in ['1', '2']):
-        print "In order to change a player's record, first we need to look " \
-              "them up " \
-              "and make sure they're actually there."
-        print "Here are your options:"
-        print "1. By ID"
-        print "2. By Name"
-        method = raw_input("Please choose: ")
+    if not player:
+        # A quick and dirty way to keep asking until we get the right answer 
+        # is via a WHILE loop. So long as the user DOESN'T give us one of two
+        # options we'll keep bugging them.
+    
+        # ONE IF BY LAND, TWO IF BY SEA
+        # -- Henry Wadsworth Longfellow's "Paul Revere's Ride"
+        while not any(word in method for word in ['id', 'name']):
+            print "In order to change a player's record, first we need to " \
+                  "look them up and make sure they're actually there."
+            print "Here are your options:"
+            print "1. By ID"
+            print "2. By Name"
+            method = raw_input("Please choose: ")
+            if method == "1":
+                method = "id"
+            if method == "2":
+                method = "name"
         # 1 if by land (ID)
-        if method == "1":
-            by = "ID"
+        if method == "id":
             print "Looking up player by ID..."
             criteria = raw_input("Please enter the player's ID: ")
         # 2 if by sea (name)
-        if method == "2":
-            by = "name"
+        if method == "name":
             print "Looking up player by Name..."
             criteria = raw_input("Please enter the player's Name: ")
 
         start = time.time()
-        results = db.search("players", by, criteria)
+        results = db.search("players", method, criteria)
         table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
         table.align = "l"
         for row in results:
@@ -99,23 +99,25 @@ def edit_player(option):
             table.add_row([count, row[0], row[1], row[2]])
         print table
         stop = time.time()
-
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
-                 "edit_player()")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
-    print ""
+    
+        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                        rounding="ROUND_UP"))
+        tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
+                     "edit_player()")
+        print "Returned %s results in %s seconds\n" % (count, dur[:5])
     if option == "delete":
-        player = raw_input("Which player do you want to delete? [ID]")
+        if not player:
+            player = raw_input("Which player do you want to delete? [ID]")
         start = time.time()
         db.delete_player(player)
         tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
-    if option == "edit":
-        player = raw_input("Which player do you want to edit? [ID]")
-        new_name = raw_input("New Player Name [leave blank for no change]: ")
-        new_country = raw_input("New Country [leave blank for no change]: ")
+    elif option == "edit":
+        if not player:
+            player = raw_input("Which player do you want to edit? [ID]")
+        print "Leave blank for no change."
+        new_name = raw_input("New Player Name: ")
+        new_country = raw_input("New Country: ")
         existing = db.search("players", "ID", player)
         for row in existing:
             existing_name = row[1]
@@ -133,10 +135,13 @@ def edit_player(option):
         db.update_player(player, player_name, player_country)
         tools.logger("Updated %s." % player, "edit_player()")
         stop = time.time()
+    else:
+        raise ValueError("Choose method DELETE or EDIT.")
 
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    print "Complete. Operation took %s seconds." % duration[:5]
+    print "Complete. Operation took %s seconds." % dur[:5]
+    return 0
 
 
 # Get a list of players based on criteria and display method.
@@ -161,25 +166,28 @@ def list_players():
     print table
     stop = time.time()
 
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                    rounding="ROUND_UP"))
+    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_players()")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print "Returned %s results in %s seconds" % (count, dur[:5])
+    return 0
 
 
 # MATCH ORIENTED FUNCTIONS #
 
 
 # Initiate a match. Player_1 and Player_2 should be IDs.
-def go_match(match_type, player_1, player_2):
+def go_match(match_type="REG", player_1="", player_2=""):
     player_1_code = ''
     player_2_code = ''
     player_1_name = ''
     player_2_name = ''
     if match_type == "REG":
-        player_1 = raw_input("ID# for Player 1: ")
-        player_2 = raw_input("ID# for Player 2: ")
+        if not player_1:
+            player_1 = raw_input("ID# for Player 1: ")
+        if not player_2:
+            player_2 = raw_input("ID# for Player 2: ")
     tools.logger("Starting match between " + player_1 + " and " + player_2,
                  "go_match()")
     code_lookup = db.search("players", "ID", player_1)
@@ -214,6 +222,7 @@ def go_match(match_type, player_1, player_2):
     db.report_match(winner, player_1, player_2)
     tools.logger("Reported win to database.", "go_match()")
     print "Finished."
+    return 0
 
 
 # match up each of the players in the database and swiss-ify them.
@@ -268,13 +277,13 @@ def swiss_match():
     tools.logger("Generated COMPLETE table for display", "swiss_match()")
     print table_master
     stop = time.time()
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    print "Complete. Operation took %s seconds." % duration[:5]
+    print "Complete. Operation took %s seconds." % dur[:5]
     run_swiss_matchup = raw_input("Do you want to run matches through this "
                                   "list of players?\n(Keep in mind: A "
                                   "player in BYE will not be run) [Y/n]")
-
+    
     while run_swiss_matchup in ["Yes", "Y", "y"]:
         tools.logger("User opted to run matches against swiss matchups.",
                      "swiss_match()")
@@ -286,7 +295,7 @@ def swiss_match():
             print "Round %i..." % round_number
             tools.logger("Initiating round %i against go_match()" %
                          round_number, "swiss_match()")
-            go_match("SWISS", str(a[0]), str(b[0]))
+            go_match(match_type="SWISS", player_1=str(a[0]), player_2=str(b[0]))
             tools.logger("Completed round %i against go_match()" %
                          round_number, "swiss_match()")
             print "Round %i complete.\n" % round_number
@@ -303,38 +312,24 @@ def swiss_match():
     # cake.
     # profit.
     # THE CAKE IS A LIE.
+    return 0
 
 
 # Delete an existing match
-def delete_match():
+def delete_match(match=""):
     count = 0
-    print "In order to delete a match, first we need to look it up " \
-          "and make sure it's actually there."
-    start = time.time()
-    results = db.search("matches", "ALL", "null")
-    table = PrettyTable(['#', 'ID', 'Winner Code', 'Timestamp'])
-    table.align = "l"
-    for row in results:
-        count += 1
-        table.add_row([count, row[0], row[3], row[4]])
-    print table
-    stop = time.time()
-
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
-                 "delete_match()")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
-    print ""
-    match = raw_input("Which match do you want to delete? [ID]")
+    if not match:
+        raise ValueError("An ID # is required.")
     start = time.time()
     db.delete_match(match)
-    tools.logger("Deleted %s from the database" % match, "delete_match()")
+    tools.logger("Deleted match %s from the database" % match,
+                 "delete_match()")
     stop = time.time()
 
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    print "Complete. Operation took %s seconds." % duration[:5]
+    print "Complete. Operation took %s seconds." % dur[:5]
+    return 0
 
 
 # Display all historical matches.
@@ -359,19 +354,21 @@ def list_matches():
         table.add_row([count, row[0], row[1], row[2], name, row[4]])
     print table
     stop = time.time()
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print "Returned %s results in %s seconds" % (count, dur[:5])
+    return 0
 
 
 # Get the latest match's information
 def latest_match():
     print "The Latest Match"
     count = 0
+    returned_id = 0
     start = time.time()
-    results = db.search("matches", "LATEST", count)
+    results = db.search("matches", "LATEST", "1")
     tools.logger("Retrieved latest result.", "lookup")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
@@ -383,19 +380,21 @@ def latest_match():
         if name == '':
             name = "[PLAYER DELETED]"
         table.add_row([count, row[0], row[1], row[2], name, row[4]])
+        returned_id = row[0]
     print table
     stop = time.time()
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print "Returned %s results in %s seconds" % (count, dur[:5])
+    return returned_id
 
 
 # Get the latest match's information
-def lookup_match():
-    match = raw_input("Please enter a match ID to lookup: ")
-    print "Match Lookup"
+def lookup_match(match=""):
+    if not match:
+        raise Exception("Missing a match ID.")
     count = 0
     # defining 'name' here prevents "UnboundLocalError: referenced before
     # assignment" that comes up if we lookup and the player was deleted.
@@ -415,11 +414,12 @@ def lookup_match():
         table.add_row([count, row[0], row[1], row[2], name, row[4]])
     print table
     stop = time.time()
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print "Returned %s results in %s seconds" % (count, dur[:5])
+    return 0
 
 
 # Rank Players by Number of Wins
@@ -443,11 +443,12 @@ def list_win_ranking():
         table.add_row([count, name, row[1]])
     print table
     stop = time.time()
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print "Returned %s results in %s seconds" % (count, dur[:5])
+    return 0
 
 
 # Any good app keeps a log.
@@ -466,11 +467,11 @@ def display_log():
     print table
     stop = time.time()
     tools.logger("Printed audit log table.", "display_log()")
-    duration = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, duration[:5])),
+    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "display_log()")
-    print "Returned %s results in %s seconds" % (count, duration[:5])
+    print "Returned %s results in %s seconds" % (count, dur[:5])
     see_all = raw_input("Want to see all entries? [Yes/No]: ")
     if see_all == "Yes":
         tools.logger("User requested ALL entries.", "display_log()")
@@ -493,6 +494,7 @@ def display_log():
         print "Returned %s results in %s seconds" % (count, dur[:5])
     else:
         print "Ok."
+    return 0
 
 
 # Using command-line arguments to control actions. User can use flags to run
@@ -502,86 +504,89 @@ def display_log():
 parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
 
 # NEW PLAYER function
-parser.add_argument('--new-player',
+parser.add_argument('--new-player', '-n',
                     dest='new_player',
-                    action='store_true',
-                    default=False,
-                    help='Create a new player.')
+                    action='store',
+                    metavar='\"FIRST LAST\"',
+                    help='Create a new player. Give a Name wrapped in quotes.')
 
 # NEW MATCH function
-parser.add_argument('--new-match',
+parser.add_argument('--new-match', '-m',
                     dest='new_match',
                     action='store_true',
                     default=False,
                     help='Create a new match.')
 
 # SWISS MATCHUP function
-parser.add_argument('--swiss-match',
+parser.add_argument('--swiss-match', '-s',
                     dest='swiss_match',
                     action='store_true',
                     default=False,
                     help='Create a new match with swiss pairing.')
 
 # GET LATEST RESULTS function
-parser.add_argument('--latest-match',
+parser.add_argument('--latest-match' '-l',
                     dest='latest_match',
                     action='store_true',
                     default=False,
                     help='Get the results from the latest match.')
 
 # GET LATEST RESULTS function
-parser.add_argument('--lookup-match',
+parser.add_argument('--lookup-match', '-r',
                     dest='lookup_match',
-                    action='store_true',
-                    help='Get the results from a specific match by ID.')
+                    action='store',
+                    metavar='ID',
+                    help='Get the results from a specific match.')
 
 # DELETE PLAYER function
-parser.add_argument('--delete-player',
+parser.add_argument('--delete-player', '-d',
                     dest='delete_player',
-                    action='store_true',
-                    default=False,
-                    help='Delete a player from the match system with prompts.')
+                    action='store',
+                    metavar='ID',
+                    help='Remove a player from the match system.')
 
 # EDIT PLAYER function
-parser.add_argument('--edit-player',
+parser.add_argument('--edit-player', '-e',
                     dest='edit_player',
-                    action='store_true',
-                    default=False,
-                    help='Edit a player\'s exiting information')
+                    action='store',
+                    metavar='ID',
+                    help='Edit a player\'s exiting information.')
 
 # DELETE MATCH function
-parser.add_argument('--delete-match',
+parser.add_argument('--delete-match', '-f',
                     dest='delete_match',
-                    action='store_true',
-                    help='Delete a match from the match system by ID.')
+                    action='store',
+                    metavar='ID',
+                    help='Remove a match from the match system.')
 
 # LIST RESULTS function
-parser.add_argument('--list-matches',
+parser.add_argument('--list-matches', '-k',
                     dest='list_matches',
                     action='store_true',
                     default=False,
                     help='List Results from a recent match.')
 
 # LIST PLAYERS function
-parser.add_argument('--list-players',
+parser.add_argument('--list-players', '-p',
                     dest='list_players',
                     action='store_true',
                     default=False,
                     help='List all players.')
 
 # LIST RANKED function
-parser.add_argument('--list-ranking',
+parser.add_argument('--list-ranking', '-t',
                     dest='list_ranking',
                     action='store_true',
                     default=False,
                     help='List rankings.')
 
 # VIEW AUDIT LOG function
-parser.add_argument('--audit-log',
+parser.add_argument('--audit-log', '-a',
                     dest='audit_log',
                     action='store_true',
                     default=False,
                     help='Display the Audit Logs.')
+
 
 args = parser.parse_args()
 
@@ -589,31 +594,35 @@ args = parser.parse_args()
 # ROUTING LOGIC #
 
 if args.new_player:
-    new_player()
+    new_player(player_name=args.new_player)
 
 if args.new_match:
-    go_match("REG", "", "")
+    go_match(match_type="REG")
 
 if args.swiss_match:
     swiss_match()
 
 if args.delete_player:
-    edit_player("delete")
+    edit_player(method="id",
+                option="delete",
+                player=str(args.delete_player))
 
 if args.edit_player:
-    edit_player("edit")
+    edit_player(method="id",
+                option="edit",
+                player=str(args.edit_player))
 
 if args.list_players:
     list_players()
 
 if args.delete_match:
-    delete_match()
+    delete_match(match=str(args.delete_match))
 
 if args.list_matches:
     list_matches()
 
 if args.lookup_match:
-    lookup_match()
+        lookup_match(match=str(args.lookup_match))
 
 if args.latest_match:
     latest_match()
@@ -629,7 +638,4 @@ if args.audit_log:
 # Sometimes people need a bit of help...
 
 if len(sys.argv) == 1:
-    print "Sometimes you just don't know what to do. " \
-          "That's ok, here ya go. Now go have fun!"
-    raw_input("Press any key to see the argument help.")
     print parser.print_help()
