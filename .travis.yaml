@@ -1,0 +1,10 @@
+# After changing this file, check it on:
+#   http://lint.travis-ci.org/
+language: python
+python:
+- 2.7
+before_install:
+- sudo add-apt-repository -y "deb http://archive.ubuntu.com/ubuntu/ trusty main universe"
+- sudo apt-get update
+- sudo apt-get upgrade
+script: python unittests.py -b -v
