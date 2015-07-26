@@ -104,7 +104,8 @@ class TestEditPlayer(unittest.TestCase):
 
     def test_check_bad_option(self):
         """edit_player() throws when passed a bad option"""
-        self.assertRaises(match.edit_player(option="bad"), 0)
+        with self.assertRaises(AttributeError):
+            match.edit_player(option="bad")
 
 
 if __name__ == '__main__':
