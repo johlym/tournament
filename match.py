@@ -64,41 +64,23 @@ def new_player(player_name="", country=""):
 
 
 # Delete an existing player based on their ID.
-def edit_player(method="", option="", player=""):
-    count = 0
-    start = 0
-    stop = 0
-    existing_name = ''
-    existing_country = ''
-    criteria = ''
+def edit_player(option="", player="", new_name="", new_country=""):
     if option == "delete":
         start = time.time()
         db.delete_player(player)
         tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
     elif option == "edit":
-        print "Leave blank for no change."
-        new_name = raw_input("New Player Name: ")
-        new_country = raw_input("New Country: ")
-        existing = db.search("players", "ID", player)
-        for row in existing:
-            existing_name = row[1]
-            existing_country = row[2]
-        print "Editing %s..." % player
-        if not new_name:
-            player_name = existing_name
-        else:
-            player_name = new_name
-        if not new_country:
-            player_country = existing_country
-        else:
-            player_country = new_country
+        if (not new_name) and (not new_country):
+            raise AttributeError("EDIT chosen, but new info not given.")
+        player_name = new_name
+        player_country = new_country
         start = time.time()
         db.update_player(player, player_name, player_country)
         tools.logger("Updated %s." % player, "edit_player()")
         stop = time.time()
     else:
-        raise ValueError("Choose method DELETE or EDIT.")
+        raise AttributeError("OPTION Not Supported: '%s'" % option)
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                          rounding="ROUND_UP"))
@@ -571,13 +553,11 @@ def main():
         swiss_match()
 
     if args.delete_player:
-        edit_player(method="id",
-                    option="delete",
+        edit_player(option="delete",
                     player=str(args.delete_player))
 
     if args.edit_player:
-        edit_player(method="id",
-                    option="edit",
+        edit_player(option="edit",
                     player=str(args.edit_player))
 
     if args.list_players:
