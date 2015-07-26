@@ -16,5 +16,5 @@ script:
 - python test_db.py -b -v
 - python createdb.py
 - python test_match.py -b -v
-after_success
+after_success:
   coveralls
