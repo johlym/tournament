@@ -12,5 +12,5 @@ before_install:
 - pip install psycopg2
 - pip install PrettyTable
 script:
-- python tests/db_tests.py -b -v
-- python tests/match_tests.py -b -v
+- python test_db.py -b -v
+- python test_match.py -b -v
