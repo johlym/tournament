@@ -3,6 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/createdb.py" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/database.py" dialect="PostgreSQL" />
+    <file url="file://$PROJECT_DIR$/test_match.py" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/tools.py" dialect="PostgreSQL" />
     <file url="file://$PROJECT_DIR$/tournament.sql" dialect="PostgreSQL" />
   </component>
