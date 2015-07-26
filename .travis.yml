@@ -2,7 +2,8 @@
 #   http://lint.travis-ci.org/
 language: python
 python:
-- "2.7.9"
+- "2.6"
+- "2.7"
 addons:
   postgresql: "9.4"
 before_script:
@@ -11,4 +12,7 @@ before_script:
 before_install:
 - pip install psycopg2
 - pip install PrettyTable
+- pip install codecov
 script: python unittests.py -b -v
+after_success:
+  codecov
