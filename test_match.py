@@ -301,6 +301,37 @@ class TestNewMatch(BaseTestCase):
         with self.assertRaises(AttributeError):
             match.go_match(player_1=2, player_2="%")
 
+
+class TestSwissMatching(BaseTestCase):
+    def setUp(self):
+        createdb.drop()
+        createdb.create()
+        for i in range(1, 14):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+
+    def test_swiss_match(self):
+        """swiss_match() works properly"""
+        self.assertEqual(match.swiss_match()[0], 0)
+
+    def test_count_players(self):
+        """number of players counted equals count(players) in database"""
+        players_list1 = database.count_players()
+        count = len(players_list1)
+        self.assertEqual(match.swiss_match()[1], count)
+
+    def test_modulo(self):
+        """modulo properly detects an odd number of players"""
+        self.assertTrue(match.swiss_match()[2])
+
+    def test_no_players(self):
+        """swiss_match() throws if there are no players in the database"""
+        database.delete_all_players()
+        with self.assertRaises(ValueError):
+            match.swiss_match()
+
 if __name__ == '__main__':
     unittest.main()
 

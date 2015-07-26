@@ -45,8 +45,8 @@ def new_player(player_name="", country=""):
     if re.search('[!@#$%^&*\(\)~`+=]', player_name):
         raise AttributeError("Player name is invalid. (contains symbol(s))")
     tools.logger("Received player name " + player_name, "new_player()")
-    print "Please enter the player's Country of Origin: "
     if not country:
+        print "Please enter the player's Country of Origin: "
         country = raw_input("Country of Origin: ")
     tools.logger("Received player country " + country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, country)
@@ -200,15 +200,19 @@ def swiss_match():
     players_list1 = db.count_players()
     # Count the number of players in the list
     count = len(players_list1)
+    if count == 0:
+        raise ValueError("No players found.")
     tools.logger("Found %i players in list for swiss matchups." % count,
                  "swiss_match()")
     # If there isn't an even amount:
     if count % 2:
+        print count
         tools.logger("Popping off the odd player (#%i) out." % count,
                      "swiss_match()")
         # simple math.
         bye = players_list1[count - 1]
         players_list1.pop(count - 1)
+        print len(players_list1)
     # Since it's technically pure coincidence that the entries were in order,
     # we need to explicitly sort them. Defaults to the ID for sorting as it's
     # the first non-symbol in each entry.
@@ -247,39 +251,28 @@ def swiss_match():
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
-    run_swiss_matchup = raw_input("Do you want to run matches through this "
-                                  "list of players?\n(Keep in mind: A "
-                                  "player in BYE will not be run) [Y/n]")
-
-    while run_swiss_matchup in ["Yes", "Y", "y"]:
-        tools.logger("User opted to run matches against swiss matchups.",
-                     "swiss_match()")
-        # smoosh (technical term) the two lists together and make them fight
-        # for their dinner!
-        start = time.time()
-        for a, b in zip(players_list1, players_list2):
-            round_number += 1
-            print "Round %i..." % round_number
-            tools.logger("Initiating round %i against go_match()" %
-                         round_number, "swiss_match()")
-            go_match(player_1=str(a[0]), player_2=str(b[0]))
-            tools.logger("Completed round %i against go_match()" %
-                         round_number, "swiss_match()")
-            print "Round %i complete.\n" % round_number
-        stop = time.time()
-        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                        rounding="ROUND_UP"))
-        print "Complete. Operation took %s seconds." % dur[:5]
-        break  # remove if you're psycho.
-    else:
-        tools.logger("User opted to not run matches against swiss matchups.",
-                     "swiss_match()")
-        print "User neglected to run matches."
+    # smoosh (technical term) the two lists together and make them fight
+    # for their dinner!
+    start = time.time()
+    for a, b in zip(players_list1, players_list2):
+        round_number += 1
+        print "Round %i..." % round_number
+        tools.logger("Initiating round %i against go_match()" %
+                     round_number, "swiss_match()")
+        go_match(player_1=str(a[0]), player_2=str(b[0]))
+        tools.logger("Completed round %i against go_match()" %
+                     round_number, "swiss_match()")
+        print "Round %i complete.\n" % round_number
+    stop = time.time()
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                    rounding="ROUND_UP"))
+    print "Complete. Operation took %s seconds." % dur[:5]
     print "Swiss matchups complete."
     # cake.
     # profit.
     # THE CAKE IS A LIE.
-    return 0
+    status = 0
+    return [status, count, bye]
 
 
 # Delete an existing match
@@ -476,7 +469,8 @@ def argument_parser():
     parser.add_argument('--new-player', '-n',
                         dest='new_player',
                         action='store',
-                        metavar='\"FIRST LAST\"',
+                        nargs='+',
+                        metavar='\"FIRST LAST COUNTRY\"',
                         help='Create a new player. '
                              'Give a Name wrapped in quotes.')
 
@@ -566,7 +560,8 @@ def main():
     parser = argument_parser()
     args = parser.parse_args()
     if args.new_player:
-        new_player(player_name=args.new_player)
+        new_player(player_name=(args.new_player[0] + ' ' + args.new_player[1]),
+                   country=args.new_player[2])
 
     if args.new_match:
         players = args.new_match
