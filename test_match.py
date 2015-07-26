@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import createdb
 import database
 import match
 import time
