@@ -183,13 +183,6 @@ class TestListPlayers(BaseTestCase):
         dummy_player(player_name="Markola Gercola", country="Gerania")
         self.assertEqual(match.list_players(), 0)
 
-    def test_100_players(self):
-        """list_players() displays 100 entries in tournament.Players"""
-        for i in range(1, 101):
-            self.assertEqual(dummy_player(player_name="Jundlean Dakedebonwien",
-                                          country="Gerania"), 0)
-        self.assertEqual(match.list_players(), 0)
-
     def test_1000_players(self):
         """list_players() displays 1000 entries in tournament.Players"""
         for i in range(1, 1001):
