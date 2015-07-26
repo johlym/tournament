@@ -2,6 +2,7 @@
 
 # import database
 import match
+import time
 import unittest
 
 
@@ -14,10 +15,32 @@ class CommandLineTestCase(unittest.TestCase):
         cls.parser = parser
 
 
-class TestVerifyVersionMessage(unittest.TestCase):
-    def test(self):
-        """message should print if version is below 2.7"""
-        self.assertGreaterEqual(match.req_version, (2, 7))
+class TestVerifyCheckVersionMessage(unittest.TestCase):
+    def test_trivialArg(self):
+        """check_version() is waiting the correct time (3.0s)"""
+        start = time.time()
+        match.check_version((2, 4))
+        end = time.time()
+        count = round(end - start, 1)
+        self.assertEqual(count, 3.0)
+
+
+class TestVerifyVersionTooLowStatusReportSuccess(unittest.TestCase):
+    def test_older_python_version(self):
+        """check_version() 1 if out of spec"""
+        self.assertEqual(match.check_version((2, 4)), 1)
+
+    def test_same_python_version(self):
+        """check_version() 0 if in spec for same version"""
+        self.assertEqual(match.check_version((2, 7)), 0)
+
+    def test_newer_python_version(self):
+        """check_version() 0 if in spec for same version"""
+        self.assertEqual(match.check_version((2, 9)), 0)
+
+    def test_newer_python3_version(self):
+        """check_version() 0 if in spec for same version"""
+        self.assertEqual(match.check_version((3, 4)), 0)
 
 
 class TestCreateNewPlayerCommandLineArgument(CommandLineTestCase):

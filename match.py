@@ -19,16 +19,16 @@ import sys
 import time
 import tools
 
-req_version = (2, 7)
-cur_version = sys.version_info
 
-if not cur_version >= req_version:
-    print "This app was designed to run on at least Python 2.7. You're not " \
-          "running at least 2.7, so keep it mind it might not work right, " \
-          "if at all."
-    print "We're going to wait a moment to let that sink in or give you a " \
-          "chance to break out."
-    time.sleep(10.0)  # long enough, I think.
+def check_version(sys_version):
+    if sys_version < (2, 7):
+        message = "Version out of spec."
+        print message
+        time.sleep(3.0)  # long enough, I think.
+        verstat = 1
+    else:
+        verstat = 0
+    return verstat
 
 
 # PLAYER ORIENTED FUNCTIONS #
@@ -608,4 +608,5 @@ def main():
         print ""
 
 if __name__ == "__main__":
+    check_version(sys.version_info)
     main()
