@@ -6,7 +6,6 @@ import psycopg2
 def connect():
     # Connect to the PostgreSQL database.  Returns a database connection.
     return psycopg2.connect(database='tournament', user='postgres')
-    return 0
 
 
 def drop():
