@@ -18,5 +18,6 @@ script:
 - python test_match.py -b -v
 - coverage run test_db.py
 - coverage run test_match.py
+- coverage run match.py
 after_success:
   coveralls
