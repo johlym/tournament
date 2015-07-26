@@ -43,11 +43,21 @@ class TestVerifyVersionTooLowStatusReportSuccess(unittest.TestCase):
         self.assertEqual(match.check_version((3, 4)), 0)
 
 
-class TestCreateNewPlayerCommandLineArgument(BaseTestCase):
-    def test_no_name(self):
+class TestCommandLineArguments(BaseTestCase):
+    def test_no_argument_new_player(self):
         """Script should reject if --new-player argument is empty"""
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--new-player"])
+
+    def test_no_argument_edit_player(self):
+        """Script should reject if --edit-player argument is empty"""
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args(["--edit-player"])
+
+    def test_no_argument_delete_player(self):
+        """Script should reject if --edit-player argument is empty"""
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args(["--delete-player"])
 
 
 class TestNewPlayer(unittest.TestCase):
@@ -149,7 +159,7 @@ class TestListPlayers(BaseTestCase):
             player_name = "James Tester Rogan"
             player_country = "United States"
             self.assertEqual(match.new_player(player_name=player_name,
-                                 country=player_country), 0)
+                             country=player_country), 0)
         self.assertEqual(match.list_players(), 0)
 
     def test_list_players_1000(self):
@@ -158,12 +168,27 @@ class TestListPlayers(BaseTestCase):
             player_name = "James Tester Rogan"
             player_country = "United States"
             self.assertEqual(match.new_player(player_name=player_name,
-                                 country=player_country), 0)
+                             country=player_country), 0)
         self.assertEqual(match.list_players(), 0)
 
     def test_list_players_limit5(self):
         """list_players() should honor a preset limit"""
+        for i in range(1, 6):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+        self.assertEqual(match.list_players(limit="5"), 0)
 
+    def test_list_players_limit_contains_letter(self):
+        """list_players() throws if limit contains a letter"""
+        with self.assertRaises(AttributeError):
+            match.list_players(limit="A")
+
+    def test_list_players_limit_contains_symbol(self):
+        """list_players() throws if limit contains a symbol"""
+        with self.assertRaises(AttributeError):
+            match.list_players(limit="@")
 
 if __name__ == '__main__':
     unittest.main()

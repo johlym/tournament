@@ -95,13 +95,20 @@ def edit_player(option="", player="", new_name="", new_country=""):
 
 
 # Get a list of players based on criteria and display method.
-def list_players():
+def list_players(limit=""):
     count = 0
     print "List All Players."
 
     tools.logger("Requesting all players in the database.", "list_players()")
     start = time.time()
-    results = db.search("players", "ALL", "null")
+    if limit:
+        if re.search('[A-Za-z]', limit):
+            raise AttributeError("Limit is invalid (contains letter(s))")
+        if re.search('[!@#$%^&*\(\)~`+=]', limit):
+            raise AttributeError("Limit is invalid. (contains symbol(s))")
+        results = db.search("players", "LIMIT", limit)
+    else:
+        results = db.search("players", "ALL", "null")
     if not results:
         print "No players found."
         status = 1

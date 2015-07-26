@@ -110,6 +110,9 @@ def search(table, criteria, keyword):
                        "ORDER BY id DESC LIMIT 1;")
     elif criteria == "ALL":
         cursor.execute("SELECT * FROM " + table + ";")
+    elif criteria == "LIMIT":
+        cursor.execute("SELECT * FROM " + table + " "
+                       "ORDER BY id DESC LIMIT " + str(keyword) + ";")
     else:
         cursor.execute("SELECT * FROM " + table + " "
                        "WHERE " + criteria + " LIKE \'%" + keyword + "%\';")
