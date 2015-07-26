@@ -12,6 +12,7 @@ import argparse as arg
 import config as cfg
 import database as db
 from decimal import Decimal
+import exceptions
 from prettytable import PrettyTable
 import random
 import sys
@@ -36,8 +37,9 @@ if not cur_version >= req_version:
 # Create a new player based on their name and country of origin.
 def new_player(player_name=""):
     if not player_name:
-        print "Please enter the player's Name: "
-        player_name = raw_input("Player's Name: ")
+        raise exceptions.NameNotProvidedError, "No name provided."
+    if not isinstance(player_name, str):
+        raise exceptions.NotValidNameError, "Name is not valid."
     tools.logger("Received player name " + player_name, "new_player()")
     print "Please enter the player's Country of Origin: "
     player_country = raw_input("Country of Origin: ")
@@ -63,58 +65,12 @@ def edit_player(method="", option="", player=""):
     existing_name = ''
     existing_country = ''
     criteria = ''
-    if not player:
-        # A quick and dirty way to keep asking until we get the right answer 
-        # is via a WHILE loop. So long as the user DOESN'T give us one of two
-        # options we'll keep bugging them.
-    
-        # ONE IF BY LAND, TWO IF BY SEA
-        # -- Henry Wadsworth Longfellow's "Paul Revere's Ride"
-        while not any(word in method for word in ['id', 'name']):
-            print "In order to change a player's record, first we need to " \
-                  "look them up and make sure they're actually there."
-            print "Here are your options:"
-            print "1. By ID"
-            print "2. By Name"
-            method = raw_input("Please choose: ")
-            if method == "1":
-                method = "id"
-            if method == "2":
-                method = "name"
-        # 1 if by land (ID)
-        if method == "id":
-            print "Looking up player by ID..."
-            criteria = raw_input("Please enter the player's ID: ")
-        # 2 if by sea (name)
-        if method == "name":
-            print "Looking up player by Name..."
-            criteria = raw_input("Please enter the player's Name: ")
-
-        start = time.time()
-        results = db.search("players", method, criteria)
-        table = PrettyTable(['#', 'Unique ID', 'Name', 'Country'])
-        table.align = "l"
-        for row in results:
-            count += 1
-            table.add_row([count, row[0], row[1], row[2]])
-        print table
-        stop = time.time()
-    
-        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                        rounding="ROUND_UP"))
-        tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                     "edit_player()")
-        print "Returned %s results in %s seconds\n" % (count, dur[:5])
     if option == "delete":
-        if not player:
-            player = raw_input("Which player do you want to delete? [ID]")
         start = time.time()
         db.delete_player(player)
         tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
     elif option == "edit":
-        if not player:
-            player = raw_input("Which player do you want to edit? [ID]")
         print "Leave blank for no change."
         new_name = raw_input("New Player Name: ")
         new_country = raw_input("New Country: ")
@@ -501,141 +457,148 @@ def display_log():
 # certain, pre-defined scenarios. This will also allow for reuse of code where
 # applicable.
 
-parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
 
-# NEW PLAYER function
-parser.add_argument('--new-player', '-n',
-                    dest='new_player',
-                    action='store',
-                    metavar='\"FIRST LAST\"',
-                    help='Create a new player. Give a Name wrapped in quotes.')
+def argument_parser():
+    parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
 
-# NEW MATCH function
-parser.add_argument('--new-match', '-m',
-                    dest='new_match',
-                    action='store_true',
-                    default=False,
-                    help='Create a new match.')
+    # NEW PLAYER function
+    parser.add_argument('--new-player', '-n',
+                        dest='new_player',
+                        action='store',
+                        metavar='\"FIRST LAST\"',
+                        help='Create a new player. Give a Name wrapped in quotes.')
 
-# SWISS MATCHUP function
-parser.add_argument('--swiss-match', '-s',
-                    dest='swiss_match',
-                    action='store_true',
-                    default=False,
-                    help='Create a new match with swiss pairing.')
+    # NEW MATCH function
+    parser.add_argument('--new-match', '-m',
+                        dest='new_match',
+                        action='store',
+                        nargs="+",
+                        metavar='ID#1 ID#2',
+                        help='Create a new match. Provide two player IDs.')
 
-# GET LATEST RESULTS function
-parser.add_argument('--latest-match' '-l',
-                    dest='latest_match',
-                    action='store_true',
-                    default=False,
-                    help='Get the results from the latest match.')
+    # SWISS MATCHUP function
+    parser.add_argument('--swiss-match', '-s',
+                        dest='swiss_match',
+                        action='store_true',
+                        default=False,
+                        help='Create a new match with swiss pairing.')
 
-# GET LATEST RESULTS function
-parser.add_argument('--lookup-match', '-r',
-                    dest='lookup_match',
-                    action='store',
-                    metavar='ID',
-                    help='Get the results from a specific match.')
+    # GET LATEST RESULTS function
+    parser.add_argument('--latest-match' '-l',
+                        dest='latest_match',
+                        action='store_true',
+                        default=False,
+                        help='Get the results from the latest match.')
 
-# DELETE PLAYER function
-parser.add_argument('--delete-player', '-d',
-                    dest='delete_player',
-                    action='store',
-                    metavar='ID',
-                    help='Remove a player from the match system.')
+    # GET LATEST RESULTS function
+    parser.add_argument('--lookup-match', '-r',
+                        dest='lookup_match',
+                        action='store',
+                        metavar='ID',
+                        help='Get the results from a specific match.')
 
-# EDIT PLAYER function
-parser.add_argument('--edit-player', '-e',
-                    dest='edit_player',
-                    action='store',
-                    metavar='ID',
-                    help='Edit a player\'s exiting information.')
+    # DELETE PLAYER function
+    parser.add_argument('--delete-player', '-d',
+                        dest='delete_player',
+                        action='store',
+                        metavar='ID',
+                        help='Remove a player from the match system.')
 
-# DELETE MATCH function
-parser.add_argument('--delete-match', '-f',
-                    dest='delete_match',
-                    action='store',
-                    metavar='ID',
-                    help='Remove a match from the match system.')
+    # EDIT PLAYER function
+    parser.add_argument('--edit-player', '-e',
+                        dest='edit_player',
+                        action='store',
+                        metavar='ID',
+                        help='Edit a player\'s exiting information.')
 
-# LIST RESULTS function
-parser.add_argument('--list-matches', '-k',
-                    dest='list_matches',
-                    action='store_true',
-                    default=False,
-                    help='List Results from a recent match.')
+    # DELETE MATCH function
+    parser.add_argument('--delete-match', '-f',
+                        dest='delete_match',
+                        action='store',
+                        metavar='ID',
+                        help='Remove a match from the match system.')
 
-# LIST PLAYERS function
-parser.add_argument('--list-players', '-p',
-                    dest='list_players',
-                    action='store_true',
-                    default=False,
-                    help='List all players.')
+    # LIST RESULTS function
+    parser.add_argument('--list-matches', '-k',
+                        dest='list_matches',
+                        action='store_true',
+                        default=False,
+                        help='List Results from a recent match.')
 
-# LIST RANKED function
-parser.add_argument('--list-ranking', '-t',
-                    dest='list_ranking',
-                    action='store_true',
-                    default=False,
-                    help='List rankings.')
+    # LIST PLAYERS function
+    parser.add_argument('--list-players', '-p',
+                        dest='list_players',
+                        action='store_true',
+                        default=False,
+                        help='List all players.')
 
-# VIEW AUDIT LOG function
-parser.add_argument('--audit-log', '-a',
-                    dest='audit_log',
-                    action='store_true',
-                    default=False,
-                    help='Display the Audit Logs.')
+    # LIST RANKED function
+    parser.add_argument('--list-ranking', '-t',
+                        dest='list_ranking',
+                        action='store_true',
+                        default=False,
+                        help='List rankings.')
 
+    # VIEW AUDIT LOG function
+    parser.add_argument('--audit-log', '-a',
+                        dest='audit_log',
+                        action='store_true',
+                        default=False,
+                        help='Display the Audit Logs.')
 
-args = parser.parse_args()
+    return parser
 
 
 # ROUTING LOGIC #
+def main():
+    parser = argument_parser()
+    args = parser.parse_args()
+    if args.new_player:
+        new_player(player_name=args.new_player)
 
-if args.new_player:
-    new_player(player_name=args.new_player)
+    if args.new_match:
+        players = args.new_match
+        go_match(match_type="REG", player_1=players[0], player_2=players[1])
 
-if args.new_match:
-    go_match(match_type="REG")
+    if args.swiss_match:
+        swiss_match()
 
-if args.swiss_match:
-    swiss_match()
+    if args.delete_player:
+        edit_player(method="id",
+                    option="delete",
+                    player=str(args.delete_player))
 
-if args.delete_player:
-    edit_player(method="id",
-                option="delete",
-                player=str(args.delete_player))
+    if args.edit_player:
+        edit_player(method="id",
+                    option="edit",
+                    player=str(args.edit_player))
 
-if args.edit_player:
-    edit_player(method="id",
-                option="edit",
-                player=str(args.edit_player))
+    if args.list_players:
+        list_players()
 
-if args.list_players:
-    list_players()
+    if args.delete_match:
+        delete_match(match=str(args.delete_match))
 
-if args.delete_match:
-    delete_match(match=str(args.delete_match))
+    if args.list_matches:
+        list_matches()
 
-if args.list_matches:
-    list_matches()
+    if args.lookup_match:
+            lookup_match(match=str(args.lookup_match))
 
-if args.lookup_match:
-        lookup_match(match=str(args.lookup_match))
+    if args.latest_match:
+        latest_match()
 
-if args.latest_match:
-    latest_match()
+    if args.list_ranking:
+        list_win_ranking()
 
-if args.list_ranking:
-    list_win_ranking()
-
-if args.audit_log:
-    display_log()
+    if args.audit_log:
+        display_log()
 
 
-# IF NO ARGUMENTS #
-# Sometimes people need a bit of help...
+    # IF NO ARGUMENTS #
 
-if len(sys.argv) == 1:
-    print parser.print_help()
+    if len(sys.argv) == 1:
+        print ""
+
+if __name__ == "__main__":
+    main()
