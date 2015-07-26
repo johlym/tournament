@@ -2,17 +2,40 @@
 #
 # Test cases for tournament.py
 
-import database as db
-
-def testDeleteMatches():
-    deleteMatches()
-    print "1. Old matches can be deleted."
+import database
+import match
+import unittest
 
 
-def testDelete():
-    deleteMatches()
-    deletePlayers()
-    print "2. Player records can be deleted."
+class TestDeleteMatchWithoutID(unittest.TestCase):
+    def test(self):
+        self.assertEqual(match.delete_match(), 0)
+
+class TestDeleteMatchWithID(unittest.TestCase):
+    def test(self):
+        self.assertEqual(match.delete_match(match=match.latest_match()), 0)
+
+
+def testDeleteMatchViaDatabase():
+    try:
+        database.delete_match(match.latest_match())
+        print "1b. PASS. Match can be deleted with a preset ID via the " \
+              "database function delete_match()"
+    except Exception as exception:
+        print exception
+        print "1b. FAIL. Match cannot be deleted with a preset ID via the " \
+              "database function delete_match()"
+
+def testZeroOutMatchDatabase():
+    try:
+        database.delete_all()
+        c = database.count_matches()
+        if c == '0':
+            raise TypeError(
+            "count_matches() should return numeric zero, not string '0'.")
+        if c != 0:
+            raise ValueError("After deleting, countPlayers should return zero.")
+        print "3. After deleting, countPlayers() returns zero."
 
 
 def testCount():
@@ -126,14 +149,8 @@ def testPairings():
 
 
 if __name__ == '__main__':
-    testDeleteMatches()
-    testDelete()
-    testCount()
-    testRegister()
-    testRegisterCountDelete()
-    testStandingsBeforeMatches()
-    testReportMatches()
-    testPairings()
+    TestDeleteMatchWithoutID()
+    TestDeleteMatchWithoutID()
     print "Success!  All tests pass!"
 
 
