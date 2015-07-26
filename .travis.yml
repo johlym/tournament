@@ -15,7 +15,3 @@ before_install:
 script:
 - if [[ $TRAVIS_PYTHON_VERSION == 2.6.9 ]]; then python unittests.py -v; fi
 - if [[ $TRAVIS_PYTHON_VERSION == 2.7.9 ]]; then python unittests.py -b -v; fi
-install:
-  pip install codecov
-after_success:
-  codecov
