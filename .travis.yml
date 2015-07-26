@@ -12,9 +12,10 @@ before_script:
 before_install:
 - pip install psycopg2
 - pip install PrettyTable
-- pip install codecov
 script:
 - if [[ $TRAVIS_PYTHON_VERSION == 2.6.9 ]]; then python unittests.py -v; fi
 - if [[ $TRAVIS_PYTHON_VERSION == 2.7.9 ]]; then python unittests.py -b -v; fi
+install:
+  pip install codecov
 after_success:
   codecov
