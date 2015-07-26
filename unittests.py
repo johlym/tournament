@@ -59,6 +59,16 @@ class TestCommandLineArguments(BaseTestCase):
         with self.assertRaises(SystemExit):
             self.parser.parse_args(["--delete-player"])
 
+    def test_no_argument_lookup_match(self):
+        """Script should reject if --edit-player argument is empty"""
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args(["--lookup-match"])
+
+    def test_no_argument_delete_match(self):
+        """Script should reject if --edit-player argument is empty"""
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args(["--delete-match"])
+
 
 class TestNewPlayer(unittest.TestCase):
     def test_catch_name_contains_integer(self):
