@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import createdb
 import database
 import match
 import time
@@ -8,14 +9,14 @@ import unittest
 
 class BaseTestCase(unittest.TestCase):
     """Base TestCase class, sets up a CLI parser"""
-
+        
     @classmethod
     def setUpClass(cls):
         parser = match.argument_parser()
         cls.parser = parser
 
 
-class TestVerifyCheckVersionMessage(unittest.TestCase):
+class TestVerifyCheckVersionMessage(BaseTestCase):
     def test_trivialArg(self):
         """check_version() is waiting the correct time (3.0s)"""
         start = time.time()
@@ -25,7 +26,7 @@ class TestVerifyCheckVersionMessage(unittest.TestCase):
         self.assertEqual(count, 3.0)
 
 
-class TestVerifyVersionTooLowStatusReportSuccess(unittest.TestCase):
+class TestVerifyVersionTooLowStatusReportSuccess(BaseTestCase):
     def test_older_python_version(self):
         """check_version() 1 if out of spec"""
         self.assertEqual(match.check_version((2, 4)), 1)
@@ -70,7 +71,7 @@ class TestCommandLineArguments(BaseTestCase):
             self.parser.parse_args(["--delete-match"])
 
 
-class TestNewPlayer(unittest.TestCase):
+class TestNewPlayer(BaseTestCase):
     def test_catch_name_contains_integer(self):
         """new_player() should reject if name contains integer"""
         with self.assertRaises(AttributeError):
@@ -108,19 +109,28 @@ class TestNewPlayer(unittest.TestCase):
 
 
 class TestEditPlayer(BaseTestCase):
+    def setUp(self):
+        createdb.drop()
+        createdb.create()
+        for i in range(1, 9):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+
     def test_option_edit(self):
         """edit_player() edits player with new info provided"""
         r = database.search("players", "LATEST", "1")
-        print str(r[0])
-        #self.assertEquals(match.edit_player(option="edit", player=s,
-        #                                    new_name="Johan Sebastian Bach",
-        #                                    new_country="Guam"), 0)
+        s = str(r[0][0])
+        self.assertEquals(match.edit_player(option="edit", player=s,
+                                            new_name="Johan Sebastian Bach",
+                                            new_country="Guam"), 0)
 
     def test_option_delete(self):
         """edit_player() deletes player"""
         r = database.search("players", "LATEST", "1")
-        print str(r[0])
-        # self.assertEquals(match.edit_player(option="delete", player=s), 0)
+        s = str(r[0][0])
+        self.assertEquals(match.edit_player(option="delete", player=s), 0)
 
     def test_check_bad_option(self):
         """edit_player() throws when passed a bad option"""
@@ -151,6 +161,15 @@ class TestEditPlayer(BaseTestCase):
 
 
 class TestListPlayers(BaseTestCase):
+    def setUp(self):
+        createdb.drop()
+        createdb.create()
+        for i in range(1, 99):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                             country=player_country), 0)
+
     def test_display_zero_matches(self):
         """list_players() returns 1 if the tournament.Players table is empty"""
         database.delete_all_players()
@@ -232,14 +251,14 @@ class TestNewMatch(BaseTestCase):
         self.assertEqual(match.new_player(player_name=player_name,
                          country=player_country), 0)
         p = database.search("players", "LATEST", "null")
-        i1 = str(p[0][0])
+        i1 = p[0][0]
         player_name = "Ricky Tricky McDonalds"
         player_country = "South Africa"
         self.assertEqual(match.new_player(player_name=player_name,
                          country=player_country), 0)
         p = database.search("players", "LATEST", "null")
         i2 = str(p[0][0])
-        i1 += 2
+        i1 = str(i1 + 2)
         with self.assertRaises(LookupError):
             match.go_match(player_1=i1, player_2=i2)
         
@@ -257,8 +276,8 @@ class TestNewMatch(BaseTestCase):
         self.assertEqual(match.new_player(player_name=player_name,
                          country=player_country), 0)
         p = database.search("players", "LATEST", "null")
-        i2 = str(p[0][0])
-        i2 += 2
+        i2 = p[0][0]
+        i2 = str(i2 + 2)
         with self.assertRaises(LookupError):
             match.go_match(player_1=i1, player_2=i2)
         
