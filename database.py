@@ -20,10 +20,31 @@ def delete_match(match_id):
     # Remove all the match records from the database.
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("DELETE FROM matches WHERE id = " + match_id + ";")
+    cursor.execute("DELETE FROM matches WHERE id = " + str(match_id) + ";")
     connection.commit()
     cursor.close()
     connection.close()
+
+def delete_all():
+    # Clears the match database.
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM matches;")
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def count_matches():
+    # Counts the number of matches in the database.
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("SELECT COUNT(winner) FROM matches ")
+    number = cursor.fetchall()
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return number
 
 
 def delete_player(player_id):
@@ -144,22 +165,3 @@ def report_match(winner, player_1, player_2):
     connection.commit()
     cursor.close()
     connection.close()
-
-
-def swiss_pairings():
-    """Returns a list of pairs of players for the next round of a match.
-  
-    Assuming that there are an even number of players registered, each player
-    appears exactly once in the pairings.  Each player is paired with another
-    player with an equal or nearly-equal win record, that is, a player adjacent
-    to him or her in the standings.
-  
-    Returns:
-      A list of tuples, each of which contains (id1, name1, id2, name2)
-        id1: the first player's unique id
-        name1: the first player's name
-        id2: the second player's unique id
-        name2: the second player's name
-    """
-
-
