@@ -11,13 +11,7 @@ before_script:
 before_install:
 - pip install psycopg2
 - pip install PrettyTable
-- pip install python-coveralls
 script:
-- python test_db.py -b -v
+- python test_db.py
 - python createdb.py
-- python test_match.py -b -v
-- coverage run test_db.py
-- coverage run test_match.py
-- coverage run match.py
-after_success:
-  coveralls
+- python test_match.py

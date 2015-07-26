@@ -301,7 +301,9 @@ def list_matches():
     # with names, eventually).
     start = time.time()
     results = db.search("matches", "ALL", "null")
-
+    count = len(results)
+    if count == 0:
+        raise SystemExit("No matches found.")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
@@ -319,7 +321,7 @@ def list_matches():
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
-    return 0
+    return [0, results]
 
 
 # Get the latest match's information

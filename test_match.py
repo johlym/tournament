@@ -332,6 +332,14 @@ class TestSwissMatching(BaseTestCase):
         with self.assertRaises(ValueError):
             match.swiss_match()
 
+
+class TestDeleteMatch(BaseTestCase):
+    def test_list_matches(self):
+        """list_match() function executes without issue"""
+
+    def test_no_matches_found(self):
+        """list_match() throws SystemExit when no matches found"""
+
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(verbosity=3, buffer=True)
 
