@@ -165,7 +165,6 @@ class TestListPlayers(BaseTestCase):
         """list_players() should honor a preset limit"""
 
 
-
 if __name__ == '__main__':
     unittest.main()
 
