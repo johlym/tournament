@@ -13,4 +13,5 @@ before_install:
 - pip install PrettyTable
 script:
 - python test_db.py -b -v
+- python createdb.py
 - python test_match.py -b -v

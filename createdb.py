@@ -19,6 +19,7 @@ def drop():
     co.close()
     return 0
 
+
 # Create database contents
 def create():
     co = connect()
