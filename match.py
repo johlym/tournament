@@ -12,9 +12,9 @@ import argparse as arg
 import config as cfg
 import database as db
 from decimal import Decimal
-import exceptions
 from prettytable import PrettyTable
 import random
+import re
 import sys
 import time
 import tools
@@ -35,26 +35,32 @@ if not cur_version >= req_version:
 
 
 # Create a new player based on their name and country of origin.
-def new_player(player_name=""):
-    if not player_name:
-        raise exceptions.NameNotProvidedError, "No name provided."
-    if not isinstance(player_name, str):
-        raise exceptions.NotValidNameError, "Name is not valid."
+def new_player(player_name="", country=""):
+    if re.search('[0-9]', player_name):
+        raise AttributeError("Player name is invalid (contains numbers)")
+    if len(player_name) < 2:
+        raise AttributeError("Player name is less than 2 characters.")
+    if " " not in player_name:
+        raise AttributeError("Player name is invalid. (missing surname)")
+    if re.search('[!@#$%^&*\(\)~`+=]', player_name):
+        raise AttributeError("Player name is invalid. (contains symbol(s))")
     tools.logger("Received player name " + player_name, "new_player()")
     print "Please enter the player's Country of Origin: "
-    player_country = raw_input("Country of Origin: ")
-    tools.logger("Received player country " + player_country, "new_player()")
-    print "Creating new entry for %s from %s" % (player_name, player_country)
+    if not country:
+        country = raw_input("Country of Origin: ")
+    tools.logger("Received player country " + country, "new_player()")
+    print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
-    db.register_player(player_name, player_country, code)
+    db.register_player(player_name, country, code)
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     print "Successfully created new entry in %s seconds" % dur[:5]
     tools.logger("Database entry created for " + player_name + " from " +
-                 player_country + ".",
+                 country + ".",
                  "new_player()")
+    return 0
 
 
 # Delete an existing player based on their ID.
@@ -466,7 +472,8 @@ def argument_parser():
                         dest='new_player',
                         action='store',
                         metavar='\"FIRST LAST\"',
-                        help='Create a new player. Give a Name wrapped in quotes.')
+                        help='Create a new player. '
+                             'Give a Name wrapped in quotes.')
 
     # NEW MATCH function
     parser.add_argument('--new-match', '-m',
