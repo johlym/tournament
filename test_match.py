@@ -15,6 +15,12 @@ def create_dummy_data():
         player_country = "United States"
         match.new_player(player_name=player_name, country=player_country)
 
+
+def dummy_player(player_name="", country=""):
+    s = match.new_player(player_name=player_name, country=country)
+    return s
+
+
 class BaseTestCase(unittest.TestCase):
     """Base TestCase class, sets up a CLI parser"""
         
@@ -103,24 +109,18 @@ class TestNewPlayer(BaseTestCase):
 
     def test_player_has_three_word_name(self):
         """new_player() should return 0 if player is given a middle name"""
-        player_name = "James Dean Rogan"
-        player_country = "United States"
-        self.assertEqual(0, match.new_player(player_name=player_name,
-                                             country=player_country))
+        self.assertEqual(0, dummy_player(player_name="James Dean Rogan",
+                                         country="United States"))
 
     def test_country_not_provided(self):
         """new_player() should return 0 if player is given a middle name"""
-        player_name = "James Dean Rogan"
-        player_country = ""
         with self.assertRaises(SystemExit):
-            match.new_player(player_name=player_name, country=player_country)
+            dummy_player(player_name="James Rogan", country="")
 
     def test_add_new_player(self):
         """new_player() should return 0 if adding new player was successful"""
-        player_name = "James Rogan"
-        player_country = "United States"
-        self.assertEqual(0, match.new_player(player_name=player_name,
-                                             country=player_country))
+        self.assertEqual(0, dummy_player(player_name="Christoph Waltz",
+                                         country="Germany"))
 
 
 class TestEditPlayer(BaseTestCase):
@@ -180,36 +180,28 @@ class TestListPlayers(BaseTestCase):
 
     def test_list_players(self):
         """list_players() returns 0 if it works."""
-        player_name = "James Tester Rogan"
-        player_country = "United States"
-        match.new_player(player_name=player_name, country=player_country)
+        dummy_player(player_name="Markola Gercola", country="Gerania")
         self.assertEqual(match.list_players(), 0)
 
     def test_100_players(self):
         """list_players() displays 100 entries in tournament.Players"""
         for i in range(1, 101):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+            self.assertEqual(dummy_player(player_name="Jundlean Dakedebonwien",
+                                          country="Gerania"), 0)
         self.assertEqual(match.list_players(), 0)
 
     def test_1000_players(self):
         """list_players() displays 1000 entries in tournament.Players"""
         for i in range(1, 1001):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+            self.assertEqual(dummy_player(player_name="Roman Grecko",
+                                          country="Italy"), 0)
         self.assertEqual(match.list_players(), 0)
 
     def test_limit5_players(self):
         """list_players() should honor a preset limit"""
         for i in range(1, 6):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+            self.assertEqual(dummy_player(player_name="Roendka Keosna",
+                                          country="Armadadaea"), 0)
         self.assertEqual(match.list_players(limit="5"), 0)
 
     def test_limit_contains_letter(self):
@@ -227,16 +219,12 @@ class TestNewMatch(BaseTestCase):
     def test_new_match(self):
         """go_match() returns 0 when a match was successful"""
         database.delete_all_players()
-        player_name = "James Tester Rogan"
-        player_country = "United States"
-        self.assertEqual(match.new_player(player_name=player_name,
-                         country=player_country), 0)
+        self.assertEqual(dummy_player(player_name="Eonadbanad Emeenaks",
+                                      country="Rrooa"), 0)
         p = database.search("players", "LATEST", "null")
         i1 = str(p[0][0])
-        player_name = "Ricky Tricky McDonalds"
-        player_country = "South Africa"
-        self.assertEqual(match.new_player(player_name=player_name,
-                         country=player_country), 0)
+        self.assertEqual(dummy_player(player_name="Big Mac Mcdonalds",
+                                      country="Playland"), 0)
         p = database.search("players", "LATEST", "null")
         i2 = str(p[0][0])
         self.assertEqual(match.go_match(player_1=i1, player_2=i2), 0)
@@ -249,16 +237,12 @@ class TestNewMatch(BaseTestCase):
     def test_player_1_not_valid(self):
         """go_match() throws if player 1 is not valid"""
         database.delete_all_players()
-        player_name = "James Tester Rogan"
-        player_country = "United States"
-        self.assertEqual(match.new_player(player_name=player_name,
-                         country=player_country), 0)
+        self.assertEqual(dummy_player(player_name="Double Quarder",
+                                      country="Playland"), 0)
         p = database.search("players", "LATEST", "null")
         i1 = p[0][0]
-        player_name = "Ricky Tricky McDonalds"
-        player_country = "South Africa"
-        self.assertEqual(match.new_player(player_name=player_name,
-                         country=player_country), 0)
+        self.assertEqual(dummy_player(player_name="Big Mac Sauce",
+                                      country="Playland"), 0)
         p = database.search("players", "LATEST", "null")
         i2 = str(p[0][0])
         i1 = str(i1 + 2)
@@ -268,16 +252,12 @@ class TestNewMatch(BaseTestCase):
     def test_player_2_not_valid(self):
         """go_match() throws if player 2 is not valid"""
         database.delete_all_players()
-        player_name = "James Tester Rogan"
-        player_country = "United States"
-        self.assertEqual(match.new_player(player_name=player_name,
-                         country=player_country), 0)
+        self.assertEqual(dummy_player(player_name="Fissh Fillay",
+                                      country="Playland"), 0)
         p = database.search("players", "LATEST", "null")
         i1 = str(p[0][0])
-        player_name = "Ricky Tricky McDonalds"
-        player_country = "South Africa"
-        self.assertEqual(match.new_player(player_name=player_name,
-                         country=player_country), 0)
+        self.assertEqual(dummy_player(player_name="Kulv Sangwich",
+                                      country="Playland"), 0)
         p = database.search("players", "LATEST", "null")
         i2 = p[0][0]
         i2 = str(i2 + 2)
