@@ -87,25 +87,47 @@ class TestNewPlayer(unittest.TestCase):
                                              country=player_country))
 
 
-class TestEditPlayer(unittest.TestCase):
+class TestEditPlayer(CommandLineTestCase):
     def test_option_edit(self):
         """edit_player() edits player with new info provided"""
         r = database.search("players", "LATEST", "1")
-        print r
-        # self.assertEqual(match.edit_player(option="edit", player=s,
-        #                 new_name="Johan Sebastian Bach",
-        #                 new_country="Guam"), 0)
+        s = str(r[0][0])
+        self.assertEquals(match.edit_player(option="edit", player=s,
+                                            new_name="Johan Sebastian Bach",
+                                            new_country="Guam"), 0)
 
     def test_option_delete(self):
         """edit_player() deletes player"""
         r = database.search("players", "LATEST", "1")
-        print r
-        # self.asertEqual(match.edit_player(option="delete", player=s), 0)
+        s = str(r[0][0])
+        self.assertEquals(match.edit_player(option="delete", player=s), 0)
 
     def test_check_bad_option(self):
         """edit_player() throws when passed a bad option"""
         with self.assertRaises(AttributeError):
             match.edit_player(option="bad")
+
+    def test_check_edit_missing_new_info(self):
+        """edit_player() throws when both new_name and new_country are not
+        specified"""
+        with self.assertRaises(AttributeError):
+            match.edit_player(option="edit", new_name="Joan Jett")
+
+    def test_check_no_player_id(self):
+        """Script should reject if --edit-player argument is empty"""
+        with self.assertRaises(SystemExit):
+            self.parser.parse_args(["--edit-player"])
+
+    def test_check_delete_invalid_player_id(self):
+        """edit_player() should throw if the player ID is invalid"""
+        with self.assertRaises(AttributeError):
+            match.edit_player(option="delete", player="38471237401238")
+
+    def test_check_edit_invalid_player_id(self):
+        """edit_player() should throw if the player ID is invalid"""
+        with self.assertRaises(AttributeError):
+            match.edit_player(option="delete", player="38471237401238",
+                              new_name="Michael Bay", new_country="Japan")
 
 
 if __name__ == '__main__':

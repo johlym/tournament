@@ -67,15 +67,21 @@ def new_player(player_name="", country=""):
 def edit_player(option="", player="", new_name="", new_country=""):
     if option == "delete":
         start = time.time()
+        search = db.search("players", "ID", player)
+        if not search:
+            raise AttributeError("Invalid Player ID.")
         db.delete_player(player)
         tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
     elif option == "edit":
-        if (not new_name) and (not new_country):
+        if not (new_name and new_country):
             raise AttributeError("EDIT chosen, but new info not given.")
         player_name = new_name
         player_country = new_country
         start = time.time()
+        search = db.search("players", "ID", player)
+        if not search:
+            raise AttributeError("Invalid Player ID.")
         db.update_player(player, player_name, player_country)
         tools.logger("Updated %s." % player, "edit_player()")
         stop = time.time()
@@ -83,7 +89,7 @@ def edit_player(option="", player="", new_name="", new_country=""):
         raise AttributeError("OPTION Not Supported: '%s'" % option)
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
     return 0
 
@@ -222,12 +228,12 @@ def swiss_match():
     print table_master
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
     run_swiss_matchup = raw_input("Do you want to run matches through this "
                                   "list of players?\n(Keep in mind: A "
                                   "player in BYE will not be run) [Y/n]")
-    
+
     while run_swiss_matchup in ["Yes", "Y", "y"]:
         tools.logger("User opted to run matches against swiss matchups.",
                      "swiss_match()")
@@ -271,7 +277,7 @@ def delete_match(match=""):
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
     return 0
 
@@ -299,7 +305,7 @@ def list_matches():
     print table
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
@@ -328,7 +334,7 @@ def latest_match():
     print table
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
@@ -359,7 +365,7 @@ def lookup_match(match=""):
     print table
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
@@ -388,7 +394,7 @@ def list_win_ranking():
     print table
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
@@ -412,7 +418,7 @@ def display_log():
     stop = time.time()
     tools.logger("Printed audit log table.", "display_log()")
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                         rounding="ROUND_UP"))
+                                                    rounding="ROUND_UP"))
     tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
                  "display_log()")
     print "Returned %s results in %s seconds" % (count, dur[:5])
@@ -570,7 +576,7 @@ def main():
         list_matches()
 
     if args.lookup_match:
-            lookup_match(match=str(args.lookup_match))
+        lookup_match(match=str(args.lookup_match))
 
     if args.latest_match:
         latest_match()
@@ -586,6 +592,7 @@ def main():
 
     if len(sys.argv) == 1:
         print ""
+
 
 if __name__ == "__main__":
     check_version(sys.version_info)
