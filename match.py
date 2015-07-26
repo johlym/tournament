@@ -142,15 +142,27 @@ def go_match(player_1="", player_2=""):
     player_2_name = ''
     if not (player_1 and player_2):
         raise AttributeError("Both player IDs need to be provided.")
+    if re.search('[A-Za-z]', str(player_1)):
+        raise AttributeError("Player 1 ID contains letter(s).")
+    if re.search('[A-Za-z]', str(player_2)):
+        raise AttributeError("Player 2 ID contains letter(s).")
+    if re.search('[!@#$%^&*\(\)~`+=]', str(player_1)):
+        raise AttributeError("Player 1 ID is invalid. (contains symbol(s))")
+    if re.search('[!@#$%^&*\(\)~`+=]', str(player_2)):
+        raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
     tools.logger("Starting match between " + player_1 + " and " + player_2,
                  "go_match()")
     code_lookup = db.search("players", "ID", player_1)
+    if not code_lookup:
+        raise LookupError("Player 1 ID does not exist.")
     for row in code_lookup:
         player_1_code = row[3]
         player_name = db.search("players", "CODE", player_1_code)
         for result in player_name:
             player_1_name = result[1]
     code_lookup = db.search("players", "ID", player_2)
+    if not code_lookup:
+        raise LookupError("Player 2 ID does not exist.")
     for row in code_lookup:
         player_2_code = row[3]
         player_name = db.search("players", "CODE", player_2_code)
@@ -591,7 +603,6 @@ def main():
 
     if args.audit_log:
         display_log()
-
 
     # IF NO ARGUMENTS #
 
