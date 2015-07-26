@@ -6,7 +6,7 @@ import time
 import unittest
 
 
-class CommandLineTestCase(unittest.TestCase):
+class BaseTestCase(unittest.TestCase):
     """Base TestCase class, sets up a CLI parser"""
 
     @classmethod
@@ -43,7 +43,7 @@ class TestVerifyVersionTooLowStatusReportSuccess(unittest.TestCase):
         self.assertEqual(match.check_version((3, 4)), 0)
 
 
-class TestCreateNewPlayerCommandLineArgument(CommandLineTestCase):
+class TestCreateNewPlayerCommandLineArgument(BaseTestCase):
     def test_no_name(self):
         """Script should reject if --new-player argument is empty"""
         with self.assertRaises(SystemExit):
@@ -87,7 +87,7 @@ class TestNewPlayer(unittest.TestCase):
                                              country=player_country))
 
 
-class TestEditPlayer(CommandLineTestCase):
+class TestEditPlayer(BaseTestCase):
     def test_option_edit(self):
         """edit_player() edits player with new info provided"""
         r = database.search("players", "LATEST", "1")
@@ -128,6 +128,42 @@ class TestEditPlayer(CommandLineTestCase):
         with self.assertRaises(AttributeError):
             match.edit_player(option="delete", player="38471237401238",
                               new_name="Michael Bay", new_country="Japan")
+            
+
+class TestListPlayers(BaseTestCase):
+    def test_display_zero_matches(self):
+        """list_players() returns 1 if the tournament.Players table is empty"""
+        database.delete_all_players()
+        self.assertEqual(match.list_players(), 1)
+
+    def test_list_players(self):
+        """list_players() returns 0 if it works."""
+        player_name = "James Tester Rogan"
+        player_country = "United States"
+        match.new_player(player_name=player_name, country=player_country)
+        self.assertEqual(match.list_players(), 0)
+
+    def test_list_players_100(self):
+        """list_players() displays 100 entries in tournament.Players"""
+        for i in range(1, 101):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                                 country=player_country), 0)
+        self.assertEqual(match.list_players(), 0)
+
+    def test_list_players_1000(self):
+        """list_players() displays 1000 entries in tournament.Players"""
+        for i in range(1, 1001):
+            player_name = "James Tester Rogan"
+            player_country = "United States"
+            self.assertEqual(match.new_player(player_name=player_name,
+                                 country=player_country), 0)
+        self.assertEqual(match.list_players(), 0)
+
+    def test_list_players_limit5(self):
+        """list_players() should honor a preset limit"""
+
 
 
 if __name__ == '__main__':

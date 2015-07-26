@@ -25,11 +25,22 @@ def delete_match(match_id):
     cursor.close()
     connection.close()
 
-def delete_all():
+
+def delete_all_matches():
     # Clears the match database.
     connection = connect()
     cursor = connection.cursor()
     cursor.execute("DELETE FROM matches;")
+    connection.commit()
+    cursor.close()
+    connection.close()
+
+
+def delete_all_players():
+    # Clears the match database.
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("DELETE FROM players;")
     connection.commit()
     cursor.close()
     connection.close()

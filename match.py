@@ -98,30 +98,31 @@ def edit_player(option="", player="", new_name="", new_country=""):
 def list_players():
     count = 0
     print "List All Players."
-    print "Here's a list of all players in the database: "
-    print "=============================================="
+
     tools.logger("Requesting all players in the database.", "list_players()")
     start = time.time()
     results = db.search("players", "ALL", "null")
-    # table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Wins'])
-    table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Code'])
-    table.align = "l"
-    for row in results:
-        count += 1
-        # wins = db.count_wins(row[3])
-        # for win in wins:
-        #     wincount = win[0]
-        # table.add_row([count, row[0], row[1], row[2], wincount])
-        table.add_row([count, row[0], row[1], row[2], row[3]])
-    print table
-    stop = time.time()
+    if not results:
+        print "No players found."
+        status = 1
+    else:
+        print "Here's a list of all players in the database: "
+        print "=============================================="
+        table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Code'])
+        table.align = "l"
+        for row in results:
+            count += 1
+            table.add_row([count, row[0], row[1], row[2], row[3]])
+        print table
+        stop = time.time()
 
-    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                    rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                 "list_players()")
-    print "Returned %s results in %s seconds" % (count, dur[:5])
-    return 0
+        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                        rounding="ROUND_UP"))
+        tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
+                     "list_players()")
+        print "Returned %s results in %s seconds" % (count, dur[:5])
+        status = 0
+    return status
 
 
 # MATCH ORIENTED FUNCTIONS #
