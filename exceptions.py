@@ -5,141 +5,145 @@ class ExceptionError(Exception):
     pass
 
 
-class IsNotInteger(ExceptionError):
+class IsNotIntegerError(ExceptionError):
     pass
 
 
-class IsNotText(ExceptionError):
+class IsNotTextError(ExceptionError):
     pass
 
 
-class NotValidName(ExceptionError):
+class NotValidNameError(ExceptionError):
     pass
 
 
-class NameContainsInteger(ExceptionError):
+class NameContainsIntegerError(ExceptionError):
     pass
 
 
-class NameContainsSymbol(ExceptionError):
+class NameContainsSymbolError(ExceptionError):
     pass
 
 
-class NameLessThanTwoCharacters(ExceptionError):
+class NameLessThanTwoCharactersError(ExceptionError):
     pass
 
 
-class PlayerAlreadyExists(ExceptionError):
+class NameNotProvidedError(ExceptionError):
     pass
 
 
-class AddPlayerToDatabaseFailure(ExceptionError):
+class PlayerAlreadyExistsError(ExceptionError):
     pass
 
 
-class IdIsNotInteger(ExceptionError):
+class AddPlayerToDatabaseFailureError(ExceptionError):
     pass
 
 
-class IdNotExist(ExceptionError):
+class IdIsNotIntegerError(ExceptionError):
     pass
 
 
-class IdEqualsZero(ExceptionError):
+class IdNotExistError(ExceptionError):
     pass
 
 
-class PlayerNotFound(ExceptionError):
+class IdEqualsZeroError(ExceptionError):
     pass
 
 
-class EditPlayerMethodNotSupported(ExceptionError):
+class PlayerNotFoundError(ExceptionError):
     pass
 
 
-class DeletePlayerMethodNotSupported(ExceptionError):
+class EditPlayerMethodNotSupportedError(ExceptionError):
     pass
 
 
-class EditPlayerFailure(ExceptionError):
+class DeletePlayerMethodNotSupportedError(ExceptionError):
     pass
 
 
-class DeletePlayerFailure(ExceptionError):
+class EditPlayerFailureError(ExceptionError):
     pass
 
 
-class ListPlayersFailure(ExceptionError):
+class DeletePlayerFailureError(ExceptionError):
     pass
 
 
-class PlayersDatabaseContainsNoData(ExceptionError):
+class ListPlayersFailureError(ExceptionError):
     pass
 
 
-class MatchesDatabaseContainsNoData(ExceptionError):
+class PlayersDatabaseContainsNoDataError(ExceptionError):
     pass
 
 
-class AuditLogDatabaseContainsNoData(ExceptionError):
+class MatchesDatabaseContainsNoDataError(ExceptionError):
     pass
 
 
-class GeneralMatchExecutionFailure(ExceptionError):
+class AuditLogDatabaseContainsNoDataError(ExceptionError):
     pass
 
 
-class MatchPlayerCountNotSatisfied(ExceptionError):
+class GeneralMatchExecutionFailureError(ExceptionError):
     pass
 
 
-class MatchPlayerNotFound(ExceptionError):
+class MatchPlayerCountNotSatisfiedError(ExceptionError):
     pass
 
 
-class MatchReportWinFailure(ExceptionError):
+class MatchPlayerNotFoundError(ExceptionError):
     pass
 
 
-class SwissListPlayersFailure(ExceptionError):
+class MatchReportWinFailureError(ExceptionError):
     pass
 
 
-class SwissMatchesWithMatchesPlayersFailure(ExceptionError):
+class SwissListPlayersFailureError(ExceptionError):
     pass
 
 
-class DeleteMatchFailure(ExceptionError):
+class SwissMatchesWithMatchesPlayersFailureError(ExceptionError):
     pass
 
 
-class ListMatchFailure(ExceptionError):
+class DeleteMatchFailureError(ExceptionError):
     pass
 
 
-class ListMatchIdNotFound(ExceptionError):
+class ListMatchFailureError(ExceptionError):
     pass
 
 
-class DeleteMatchIdNotFound(ExceptionError):
+class ListMatchIdNotFoundError(ExceptionError):
     pass
 
 
-class LatestMatchFailure(ExceptionError):
+class DeleteMatchIdNotFoundError(ExceptionError):
     pass
 
 
-class LookupMatchFailure(ExceptionError):
+class LatestMatchFailureError(ExceptionError):
     pass
 
 
-class LookupMatchIdNotFound(ExceptionError):
+class LookupMatchFailureError(ExceptionError):
     pass
 
 
-class ListWinRankingFailure(ExceptionError):
+class LookupMatchIdNotFoundError(ExceptionError):
     pass
 
 
-class MatchNotFound(ExceptionError):
+class ListWinRankingFailureError(ExceptionError):
+    pass
+
+
+class MatchNotFoundError(ExceptionError):
     pass
