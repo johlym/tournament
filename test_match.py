@@ -7,6 +7,14 @@ import time
 import unittest
 
 
+def create_dummy_data():
+    createdb.drop()
+    createdb.create()
+    for i in range(1, 14):
+        player_name = "James Tester Rogan"
+        player_country = "United States"
+        match.new_player(player_name=player_name, country=player_country)
+
 class BaseTestCase(unittest.TestCase):
     """Base TestCase class, sets up a CLI parser"""
         
@@ -117,13 +125,7 @@ class TestNewPlayer(BaseTestCase):
 
 class TestEditPlayer(BaseTestCase):
     def setUp(self):
-        createdb.drop()
-        createdb.create()
-        for i in range(1, 9):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+        create_dummy_data()
 
     def test_option_edit(self):
         """edit_player() edits player with new info provided"""
@@ -169,13 +171,7 @@ class TestEditPlayer(BaseTestCase):
 
 class TestListPlayers(BaseTestCase):
     def setUp(self):
-        createdb.drop()
-        createdb.create()
-        for i in range(1, 99):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+        create_dummy_data()
 
     def test_display_zero_matches(self):
         """list_players() returns 1 if the tournament.Players table is empty"""
@@ -311,13 +307,7 @@ class TestNewMatch(BaseTestCase):
 
 class TestSwissMatching(BaseTestCase):
     def setUp(self):
-        createdb.drop()
-        createdb.create()
-        for i in range(1, 14):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+        create_dummy_data()
 
     def test_swiss_match(self):
         """swiss_match() works properly"""
@@ -342,13 +332,7 @@ class TestSwissMatching(BaseTestCase):
 
 class TestDeleteMatch(BaseTestCase):
     def setUp(self):
-        createdb.drop()
-        createdb.create()
-        for i in range(1, 14):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+        create_dummy_data()
 
     def test_list_matches(self):
         """list_match() function executes without issue"""
@@ -359,13 +343,7 @@ class TestDeleteMatch(BaseTestCase):
 
 class TestLatestMatch(BaseTestCase):
     def setUp(self):
-        createdb.drop()
-        createdb.create()
-        for i in range(1, 14):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+        create_dummy_data()
 
     def test_latest_match(self):
         """latest_match() function executes without issue"""
@@ -376,13 +354,7 @@ class TestLatestMatch(BaseTestCase):
 
 class TestLookupMatch(BaseTestCase):
     def setUp(self):
-        createdb.drop()
-        createdb.create()
-        for i in range(1, 14):
-            player_name = "James Tester Rogan"
-            player_country = "United States"
-            self.assertEqual(match.new_player(player_name=player_name,
-                             country=player_country), 0)
+        create_dummy_data()
 
     def test_lookup_match(self):
         """lookup_match() function executes without issue when all given data
