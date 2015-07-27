@@ -112,13 +112,9 @@ def list_players(limit=""):
         status = 1
     else:
         print "Here's a list of all players in the database: "
-        print "=============================================="
-        table = PrettyTable(['#', 'Unique ID', 'Name', 'Country', 'Code'])
-        table.align = "l"
-        for row in results:
-            count += 1
-            table.add_row([count, row[0], row[1], row[2], row[3]])
-        print table
+        start = time.time()
+        count = len(results)
+        print tools.table_gen(['ID', 'Name', 'Country'], results, "l")
         stop = time.time()
 
         dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -167,7 +163,7 @@ def go_match(player_1="", player_2=""):
         player_name = db.search("players", "CODE", player_2_code)
         for result in player_name:
             player_2_name = result[1]
-    print "Match between %s and %s" % (player_1_name, player_2_name)
+    print "%s vs. %s... " % (player_1_name, player_2_name),
     if (not player_1_name) or (not player_2_name):
         raise ValueError("One of the two players you entered doesn't exist.")
     # Randomly pick between one or two.
@@ -186,7 +182,6 @@ def go_match(player_1="", player_2=""):
         winner = player_2_code
     db.report_match(winner, player_1, player_2)
     tools.logger("Reported win to database.", "go_match()")
-    print "Finished."
     status = 0
     return status
 
@@ -218,34 +213,18 @@ def swiss_match():
     players_list1 = sorted(players_list1)
     # Flip the second dict; faster than using the reversed() builtin.
     players_list2 = sorted(players_list1, reverse=True)
-    print "The matchups are as follows:"
-
-    table_master = PrettyTable(["TEAM A", "TEAM B"])
-    table_master.align = "c"
-    table_master.hrules = False
-    table_master.vrules = True
-    table_master.left_padding_width = 0
-    table_master.right_padding_width = 0
-    tools.logger("Generated MASTER table for display.", "swiss_match()")
-    table_slave_a = PrettyTable(["#", "NAME", "COUNTRY"])
-    table_slave_a.align = "l"
-    table_slave_a.border = False
-    for a in players_list1:
-        table_slave_a.add_row([a[0], a[1], a[2]])
-    if bye:
-        table_slave_a.add_row([bye[0], bye[1], bye[2]])
-    tools.logger("Generated SLAVE A table for display.", "swiss_match()")
-    table_slave_b = PrettyTable(["#", "NAME", "COUNTRY"])
-    table_slave_b.align = "l"
-    table_slave_b.border = False
-    for b in players_list2:
-        table_slave_b.add_row([b[0], b[1], b[2]])
-    if bye:
-        table_slave_b.add_row(["--", "------BYE------", "--------"])
-    tools.logger("Generated SLAVE B table for display.", "swiss_match()")
-    table_master.add_row([table_slave_a, table_slave_b])
+    tx = PrettyTable(["TEAM A", "TEAM B"])
+    tx.align = "c"
+    tx.hrules = False
+    tx.vrules = False
+    tx.left_padding_width = 0
+    tx.right_padding_width = 0
+    ta = tools.table_gen(['ID', 'Name', 'Country'], players_list1, "l")
+    tb = tools.table_gen(['ID', 'Name', 'Country'], players_list2, "l")
+    tx.add_row([ta, tb])
     tools.logger("Generated COMPLETE table for display", "swiss_match()")
-    print table_master
+    print tx
+    print "Bye: " + bye[1]
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
@@ -255,14 +234,13 @@ def swiss_match():
     start = time.time()
     for a, b in zip(players_list1, players_list2):
         round_number += 1
-        print "Round %i..." % round_number
+        print "Round %i: " % round_number,
         tools.logger("Initiating round %i against go_match()" %
                      round_number, "swiss_match()")
         go_match(player_1=str(a[0]), player_2=str(b[0]))
         tools.logger("Completed round %i against go_match()" %
                      round_number, "swiss_match()")
-        print "Round %i complete.\n" % round_number
-    stop = time.time()
+        stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
