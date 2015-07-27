@@ -15,6 +15,13 @@ def connect():
                             user=cfg.DATABASE_USERNAME,
                             password=cfg.DATABASE_PASSWORD)
 
+def sql(fileinput):
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute(fileinput)
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 def delete_match(match_id):
     # Remove all the match records from the database.

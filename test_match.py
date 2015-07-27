@@ -9,11 +9,7 @@ import unittest
 
 def create_dummy_data():
     createdb.drop()
-    createdb.create()
-    for i in range(1, 14):
-        player_name = "James Tester Rogan"
-        player_country = "United States"
-        match.new_player(player_name=player_name, country=player_country)
+    database.sql(open("sql/data.sql", "r").read())
 
 
 def dummy_player(player_name="", country=""):
@@ -309,9 +305,13 @@ class TestDeleteMatch(BaseTestCase):
 
     def test_list_matches(self):
         """list_match() function executes without issue"""
+        self.assertEqual(match.list_matches(), 0)
 
     def test_no_matches_found(self):
         """list_match() throws SystemExit when no matches found"""
+        database.delete_all_matches()
+        with self.assertRaises(SystemExit):
+            match.list_matches()
 
 
 class TestLatestMatch(BaseTestCase):

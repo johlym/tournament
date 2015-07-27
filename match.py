@@ -294,6 +294,7 @@ def delete_match(match=""):
 # Display all historical matches.
 def list_matches():
     count = 0
+    name = ''
     tools.logger("Listing all matches.", "list_matches()")
     print "List All Matches"
     # display all matches in the matches table, (in groups of ten,
