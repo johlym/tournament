@@ -62,3 +62,9 @@ recorded, anyway, and you can view the entries.
 
 * Since player `ID` numbers are unique, an `ID` of a deleted player will never 
 belong to another player so in its place you'll see `[DELETED]`.
+
+* Missing data will likely always return an exception.
+
+* I opted to do some of the data manipulation in the app for the swiss 
+pairings, versus in the database query. My testing shows there was no 
+performance improvement using the latter.
