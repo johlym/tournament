@@ -377,6 +377,8 @@ def list_win_ranking():
     # for each player, count the number of times they won in every match
     start = time.time()
     results = db.player_standings()
+    if not results:
+        raise SystemExit("No Matches Found to Rank.")
     table = PrettyTable(['#', 'PLAYER', 'WINS'])
     table.align = 'l'
     for row in results:

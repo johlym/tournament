@@ -360,18 +360,18 @@ class TestLookupMatch(BaseTestCase):
 
 class TestListWinRanking(BaseTestCase):
     def setUp(self):
-        """set up"""
+        create_dummy_data()
 
     def test_list_win_ranking(self):
         """list_win_ranking() function executes without issue"""
-
-    def test_no_players(self):
-        """list_win_ranking() throws SystemExit when there are no players to
-        rank"""
+        self.assertEqual(match.list_win_ranking(), 0)
 
     def test_no_matches(self):
         """list_win_ranking() throws SystemExit when there are no matches to
         calculate wins against."""
+        createdb.drop()
+        with self.assertRaises(SystemExit):
+            match.list_win_ranking()
 
 
 class TestAuditLog(BaseTestCase):
