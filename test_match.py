@@ -4,6 +4,7 @@ import createdb
 import database
 import match
 import time
+import tools
 import unittest
 
 
@@ -376,17 +377,22 @@ class TestListWinRanking(BaseTestCase):
 
 class TestAuditLog(BaseTestCase):
     def setUp(self):
-        """set up"""
+        create_dummy_data()
 
     def test_write_log_entry(self):
         """Can write a log entry to the auditlog table"""
+        tools.logger("Test Log Entry.", "TestAuditLog__test_write_log_entry")
 
     def test_display_log_entries(self):
         """display_log() can display log entries"""
+        self.assertEqual(match.display_log(), 0)
 
     def test_no_log_entries(self):
         """display_log() throws SystemExit when there are no log entries to
         display"""
+        createdb.truncate("auditlog")
+        with self.assertRaises(SystemExit):
+            match.display_log()
 
 if __name__ == '__main__':
     unittest.main(verbosity=3, buffer=True)

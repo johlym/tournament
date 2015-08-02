@@ -401,11 +401,12 @@ def list_win_ranking():
 
 # Any good app keeps a log.
 def display_log(see_all=False):
-    tools.logger("Displaying log entries.", "display_log()")
     count = 20
     print "Displaying last 20 entries."
     start = time.time()
     results = db.search("auditlog", "LOGS", count)
+    if not results:
+        raise SystemExit("No log entries.")
     tools.logger("Retrieved results x20.", "display_log()")
     table = PrettyTable(['#', 'ENTRY', 'ACTION', 'UNIQUE ID', 'TIMESTAMP'])
     table.align = 'l'
