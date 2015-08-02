@@ -170,7 +170,6 @@ def player_standings():
                    "GROUP BY winner "
                    "ORDER BY count desc "
                    "LIMIT 5;")
-    count = cursor.rowcount
     rows = cursor.fetchall()
     connection.commit()
     cursor.close()

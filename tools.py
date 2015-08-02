@@ -2,9 +2,10 @@ __author__ = 'jlyman'
 
 # extra but useful stuff
 
-import datetime, database as db, uuid
+import datetime
+import database as db
+import uuid
 from prettytable import PrettyTable
-from time import time
 
 # the ability to log behaviors is always nice.
 

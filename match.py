@@ -109,10 +109,8 @@ def edit_player(option="", player="", new_name="", new_country=""):
 # - Limit to display
 
 def list_players(limit=""):
-    count = 0
     print "List All Players."
     tools.logger("Requesting all players in the database.", "list_players()")
-    start = time.time()
     if limit:
         if re.search('[A-Za-z]', limit):
             raise AttributeError("Limit is invalid (contains letter(s))")
@@ -275,7 +273,6 @@ def swiss_match():
 # - Match ID
 
 def delete_match(match=""):
-    count = 0
     if not match:
         raise ValueError("An ID # is required.")
     start = time.time()
@@ -293,7 +290,6 @@ def delete_match(match=""):
 # Display all historical matches.
 
 def list_matches():
-    count = 0
     name = ''
     tools.logger("Listing all matches.", "list_matches()")
     print "List All Matches"

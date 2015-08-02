@@ -315,7 +315,6 @@ class TestDeleteMatch(BaseTestCase):
             match.list_matches()
 
 
-
 class TestLatestMatch(BaseTestCase):
     def setUp(self):
         create_dummy_data()
@@ -394,6 +393,6 @@ class TestAuditLog(BaseTestCase):
         with self.assertRaises(SystemExit):
             match.display_log()
 
+
 if __name__ == '__main__':
     unittest.main(verbosity=3, buffer=True)
-
