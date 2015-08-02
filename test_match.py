@@ -314,6 +314,7 @@ class TestDeleteMatch(BaseTestCase):
             match.list_matches()
 
 
+
 class TestLatestMatch(BaseTestCase):
     def setUp(self):
         create_dummy_data()
@@ -332,20 +333,29 @@ class TestLookupMatch(BaseTestCase):
     def test_lookup_match(self):
         """lookup_match() function executes without issue when all given data
         is valid and searched-for match is present"""
+        self.assertEqual(match.lookup_match(match="1"), 0)
 
     def test_id_not_provided(self):
         """lookup_match() throws SystemExit when match ID is not provided"""
+        with self.assertRaises(SystemExit):
+            match.lookup_match()
 
     def test_id_contains_alpha(self):
         """lookup_match() throws AttributeError when match ID contains or is
         an alpha character"""
+        with self.assertRaises(AttributeError):
+            match.lookup_match(match="A")
 
     def test_id_contains_symbol(self):
         """lookup_match() throws AttributeError when match ID contains or is
         a symbol"""
+        with self.assertRaises(AttributeError):
+            match.lookup_match(match="!")
 
     def test_match_not_found(self):
         """lookup_match() throws SystemExit when no match is found"""
+        with self.assertRaises(SystemExit):
+            match.lookup_match(match="0")
 
 
 class TestListWinRanking(BaseTestCase):

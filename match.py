@@ -334,7 +334,11 @@ def latest_match():
 # Get the latest match's information
 def lookup_match(match=""):
     if not match:
-        raise Exception("Missing a match ID.")
+        raise SystemExit("Missing a match ID.")
+    if re.search('[A-Za-z]', str(match)):
+        raise AttributeError("Match ID contains letter(s)")
+    if re.search('[!@#$%^&*\(\)~`+=]', str(match)):
+        raise AttributeError("Match ID contains symbol(s)")
     count = 0
     # defining 'name' here prevents "UnboundLocalError: referenced before
     # assignment" that comes up if we lookup and the player was deleted.
