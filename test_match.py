@@ -369,7 +369,7 @@ class TestListWinRanking(BaseTestCase):
     def test_no_matches(self):
         """list_win_ranking() throws SystemExit when there are no matches to
         calculate wins against."""
-        createdb.drop()
+        createdb.truncate('matches')
         with self.assertRaises(SystemExit):
             match.list_win_ranking()
 

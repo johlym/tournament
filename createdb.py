@@ -20,6 +20,15 @@ def drop():
     return 0
 
 
+def truncate(table):
+    co = connect()
+    cu = co.cursor()
+    cu.execute("TRUNCATE " + table + ";")
+    co.commit()
+    cu.close()
+    co.close()
+
+
 # Create database contents
 def create():
     co = connect()
