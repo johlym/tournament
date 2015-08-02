@@ -3,6 +3,7 @@
 # database.py -- implementation of a Swiss-system tournament
 # based on tournament.py from udacity.
 #
+
 import config as cfg
 import datetime
 import psycopg2
@@ -15,6 +16,7 @@ def connect():
                             user=cfg.DATABASE_USERNAME,
                             password=cfg.DATABASE_PASSWORD)
 
+
 def sql(fileinput):
     connection = connect()
     cursor = connection.cursor()
@@ -22,6 +24,7 @@ def sql(fileinput):
     connection.commit()
     cursor.close()
     connection.close()
+
 
 def delete_match(match_id):
     # Remove all the match records from the database.
@@ -103,6 +106,7 @@ def count_wins(player_code):
 
 # A fancy multi-purpose function that we can use to search ANY of the tables,
 #  provided we give the right criteria.
+
 def search(table, criteria, keyword):
     connection = connect()
     cursor = connection.cursor()

@@ -20,6 +20,9 @@ import time
 import tools
 
 
+# Let's check to make sure the user is running at least Python 2.7. Since
+# this app was coded with that version, it would make sense.
+
 def check_version(sys_version):
     if sys_version < (2, 7):
         message = "Version out of spec."
@@ -33,8 +36,11 @@ def check_version(sys_version):
 
 # PLAYER ORIENTED FUNCTIONS #
 
+# Create a new player based on their name and country of origin. We expect
+# the following:
+# - Player Name
+# - Player Country of Origin
 
-# Create a new player based on their name and country of origin.
 def new_player(player_name="", country=""):
     if re.search('[0-9]', player_name):
         raise AttributeError("Player name is invalid (contains numbers)")
@@ -62,7 +68,12 @@ def new_player(player_name="", country=""):
     return 0
 
 
-# Delete an existing player based on their ID.
+# Delete an existing player based on their ID. We expect the following:
+# - Option (edit or delete)
+# - Player ID
+# - New Player Name (if edit)
+# - New Country of Origin (if edit)
+
 def edit_player(option="", player="", new_name="", new_country=""):
     if option == "delete":
         start = time.time()
@@ -93,7 +104,10 @@ def edit_player(option="", player="", new_name="", new_country=""):
     return 0
 
 
-# Get a list of players based on criteria and display method.
+# Get a list of players based on criteria and display method. We expect the
+# following:
+# - Limit to display
+
 def list_players(limit=""):
     count = 0
     print "List All Players."
@@ -128,8 +142,10 @@ def list_players(limit=""):
 
 # MATCH ORIENTED FUNCTIONS #
 
+# Initiate a match. We expect the following:
+# - ID of Player 1
+# - ID of Player 2
 
-# Initiate a match. Player_1 and Player_2 should be IDs.
 def go_match(player_1="", player_2=""):
     player_1_code = ''
     player_2_code = ''
@@ -187,6 +203,7 @@ def go_match(player_1="", player_2=""):
 
 
 # match up each of the players in the database and swiss-ify them.
+
 def swiss_match():
     bye = ''
     round_number = 0
@@ -210,6 +227,8 @@ def swiss_match():
     # Since it's technically pure coincidence that the entries were in order,
     # we need to explicitly sort them. Defaults to the ID for sorting as it's
     # the first non-symbol in each entry.
+    # If we did the list organization in the database, it would require extra
+    # cycles in the code to get the data right.
     players_list1 = sorted(players_list1)
     # Flip the second dict; faster than using the reversed() builtin.
     players_list2 = sorted(players_list1, reverse=True)
@@ -252,7 +271,9 @@ def swiss_match():
     return [status, count, bye]
 
 
-# Delete an existing match
+# Delete an existing match. We expect the following:
+# - Match ID
+
 def delete_match(match=""):
     count = 0
     if not match:
@@ -270,6 +291,7 @@ def delete_match(match=""):
 
 
 # Display all historical matches.
+
 def list_matches():
     count = 0
     name = ''
@@ -282,6 +304,8 @@ def list_matches():
     count = len(results)
     if count == 0:
         raise SystemExit("No matches found.")
+    # print tools.table_gen(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'],
+    #                      results, "l")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
@@ -303,6 +327,7 @@ def list_matches():
 
 
 # Get the latest match's information
+
 def latest_match():
     print "The Latest Match"
     count = 0
@@ -331,7 +356,9 @@ def latest_match():
     return returned_id
 
 
-# Get the latest match's information
+# Get the latest match's information. We expect the following:
+# - Match ID
+
 def lookup_match(match=""):
     if not match:
         raise SystemExit("Missing a match ID.")
@@ -368,7 +395,8 @@ def lookup_match(match=""):
     return 0
 
 
-# Rank Players by Number of Wins
+# Rank Players by Number of Wins.
+
 def list_win_ranking():
     print "List Ranking of Players by Wins"
     count = 0
@@ -399,7 +427,8 @@ def list_win_ranking():
     return 0
 
 
-# Any good app keeps a log.
+# Any good app keeps a log. We can optionally display all with see_all.
+
 def display_log(see_all=False):
     count = 20
     print "Displaying last 20 entries."
@@ -448,7 +477,6 @@ def display_log(see_all=False):
 # Using command-line arguments to control actions. User can use flags to run
 # certain, pre-defined scenarios. This will also allow for reuse of code where
 # applicable.
-
 
 def argument_parser():
     parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
@@ -553,7 +581,7 @@ def main():
 
     if args.new_match:
         players = args.new_match
-        go_match(match_type="REG", player_1=players[0], player_2=players[1])
+        go_match(player_1=players[0], player_2=players[1])
 
     if args.swiss_match:
         swiss_match()
@@ -589,8 +617,10 @@ def main():
 
     # IF NO ARGUMENTS #
 
+    # Print all options.
+
     if len(sys.argv) == 1:
-        print ""
+        parser.print_help()
 
 
 if __name__ == "__main__":
