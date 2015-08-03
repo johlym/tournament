@@ -11,9 +11,9 @@ def connect():
 def drop():
     co = connect()
     cu = co.cursor()
-    cu.execute("DROP TABLE IF EXISTS players;")
-    cu.execute("DROP TABLE IF EXISTS matches;")
-    cu.execute("DROP TABLE IF EXISTS auditlog;")
+    cu.execute("DROP TABLE IF EXISTS players CASCADE;")
+    cu.execute("DROP TABLE IF EXISTS matches CASCADE;")
+    cu.execute("DROP TABLE IF EXISTS auditlog CASCADE;")
     co.commit()
     cu.close()
     co.close()

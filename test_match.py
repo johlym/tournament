@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import createdb
+import tcdbfunc
 import database
 import match
 import time
@@ -9,7 +9,7 @@ import unittest
 
 
 def create_dummy_data():
-    createdb.drop()
+    tcdbfunc.drop()
     database.sql(open("sql/data.sql", "r").read())
 
 
@@ -369,7 +369,7 @@ class TestListWinRanking(BaseTestCase):
     def test_no_matches(self):
         """list_win_ranking() throws SystemExit when there are no matches to
         calculate wins against."""
-        createdb.truncate('matches')
+        tcdbfunc.truncate('matches')
         with self.assertRaises(SystemExit):
             match.list_win_ranking()
 
@@ -389,7 +389,7 @@ class TestAuditLog(BaseTestCase):
     def test_no_log_entries(self):
         """display_log() throws SystemExit when there are no log entries to
         display"""
-        createdb.truncate("auditlog")
+        tcdbfunc.truncate("auditlog")
         with self.assertRaises(SystemExit):
             match.display_log()
 
