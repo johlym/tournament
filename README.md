@@ -21,6 +21,11 @@ Run the script on the command line with a 2.7x python interpreter with one of
  the following arguments. If you do not, you'll be prompted that you forgot 
  to do so and will receive a list of arguments, anyway.
 
+### Requirements
+
+- Python >= 2.7
+- PostgreSQL >= 9.3
+
 ### Arguments
 
 Here's a breakdown of all the arguments that can be passed by the user:
