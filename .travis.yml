@@ -11,12 +11,6 @@ matrix:
   - python: "2.7.9"
     addons:
       postgresql: "9.3"
-  - python: "2.7.9"
-    addons:
-      postgresql: "9.2"
-  - python: "2.7.9"
-    addons:
-      postgresql: "9.1"
 before_script:
 - psql -c 'CREATE DATABASE tournament;' -U postgres
 - python tcdbfunc.py
