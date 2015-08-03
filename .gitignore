@@ -1,4 +1,6 @@
 # folders
 .idea/
 
+# files
+.pyc
 
