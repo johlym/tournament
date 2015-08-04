@@ -18,8 +18,6 @@ CREATE TABLE players
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE players
-  OWNER TO postgres;
 
 
 -- Table: matches
@@ -38,8 +36,6 @@ CREATE TABLE matches
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE matches
-  OWNER TO postgres;
 
 
 -- Table: auditlog
@@ -58,5 +54,3 @@ CREATE TABLE auditlog
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE auditlog
-  OWNER TO postgres;

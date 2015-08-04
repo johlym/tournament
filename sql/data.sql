@@ -6,9 +6,6 @@ CREATE TABLE auditlog (
     "timestamp" text NOT NULL
 );
 
-
-ALTER TABLE auditlog OWNER TO postgres;
-
 --
 -- Name: auditlog_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
 --
@@ -19,9 +16,6 @@ CREATE SEQUENCE auditlog_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE auditlog_id_seq OWNER TO postgres;
 
 --
 -- Name: auditlog_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
@@ -156,9 +150,6 @@ CREATE TABLE matches (
     winner text NOT NULL,
     "timestamp" text NOT NULL
 );
-
-
-ALTER TABLE matches OWNER TO postgres;
 
 --
 -- Name: matches_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
@@ -332,9 +323,6 @@ CREATE TABLE players (
     country text NOT NULL,
     code text
 );
-
-
-ALTER TABLE players OWNER TO postgres;
 
 --
 -- Name: players_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
