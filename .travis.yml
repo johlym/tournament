@@ -19,4 +19,4 @@ before_install:
 script:
 - python test_db.py
 - python tcdbfunc.py
-- python test_match.py
+- python test_tournament.py

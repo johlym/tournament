@@ -26,6 +26,20 @@ def sql(fileinput):
     connection.close()
 
 
+def sql_lookup_query(function, table="", rid="", limit="", sort=""):
+    # multifunction sql... function.
+    if not function:
+        raise AttributeError("No function provided")
+    if not limit:
+        limit = "100"
+    if not sort:
+        sort = "DESC"
+    connection = connect()
+    cursor = connection.cursor()
+    cursor.execute("%s FROM %s WHERE id = %s LIMIT %s %s" %
+                    (function, table, rid, limit, sort))
+
+
 def delete_match(match_id):
     # Remove all the match records from the database.
     connection = connect()
@@ -110,18 +124,19 @@ def count_wins(player_code):
 def search(table, criteria, keyword):
     connection = connect()
     cursor = connection.cursor()
-    if criteria == "ID":
+    # Search using various identifiers in the table requested
+    if criteria == "ID": # by ID
         cursor.execute("SELECT * FROM " + table + " "
                        "WHERE " + criteria + " = " + keyword + ";")
-    elif criteria == "LOGS":
+    elif criteria == "LOGS": # search for logs
         cursor.execute("SELECT * FROM " + table + " "
                        "ORDER BY id DESC LIMIT " + str(keyword) + ";")
-    elif criteria == "LATEST":
+    elif criteria == "LATEST": # latest entry
         cursor.execute("SELECT * FROM " + table + " "
                        "ORDER BY id DESC LIMIT 1;")
-    elif criteria == "ALL":
+    elif criteria == "ALL": # everything
         cursor.execute("SELECT * FROM " + table + ";")
-    elif criteria == "LIMIT":
+    elif criteria == "LIMIT": # everything with user-defined limit
         cursor.execute("SELECT * FROM " + table + " "
                        "ORDER BY id DESC LIMIT " + str(keyword) + ";")
     else:
