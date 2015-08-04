@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
+import unittest
+
 import tcdbfunc
 import database
-import unittest
 
 
 class TestCreateDatabaseTable(unittest.TestCase):

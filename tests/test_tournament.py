@@ -1,16 +1,17 @@
 #!/usr/bin/env python
 
+import time
+import unittest
+
 import tcdbfunc
 import database
 import tournament
-import time
 import tools
-import unittest
 
 
 def create_dummy_data():
     tcdbfunc.drop()
-    database.sql(open("sql/data.sql", "r").read())
+    database.sql(open("../sql/data.sql", "r").read())
 
 
 def dummy_player(player_name="", country=""):
