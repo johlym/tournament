@@ -2,7 +2,6 @@
 
 import time
 import unittest
-import tests.tcdbfunc
 import database
 import psycopg2
 import tournament
@@ -78,16 +77,16 @@ def dummy_player(player_name="", country=""):
 class TestCreateDatabaseTable(unittest.TestCase):
     def test_connect_to_database(self):
         """test connection to database 'tournament'"""
-        tests.tcdbfunc.connect()
+        connect()
 
     def test_drop_database_tables_if_exist(self):
         """setup process: drop tables from database if they exist"""
-        self.assertEqual(tests.tcdbfunc.drop(), 0)
+        self.assertEqual(drop(), 0)
 
     def test_create_database_tables(self):
         """create database tables 'players', 'matches', 'auditlog'"""
-        self.assertEqual(tests.tcdbfunc.drop(), 0)
-        self.assertEqual(tests.tcdbfunc.create(), 0)
+        self.assertEqual(drop(), 0)
+        self.assertEqual(create(), 0)
 
 
 class TestMainDatabaseConnector(unittest.TestCase):
