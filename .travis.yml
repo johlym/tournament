@@ -17,6 +17,4 @@ before_install:
 - pip install psycopg2
 - pip install PrettyTable
 script:
-- python tests/test_db.py
-- python tests/tcdbfunc.py
-- python tests/test_tournament.py
+- python test.py

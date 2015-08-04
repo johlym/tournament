@@ -2,21 +2,98 @@
 
 import time
 import unittest
-
-import tcdbfunc
+import tests.tcdbfunc
 import database
+import psycopg2
 import tournament
 import tools
 
 
+def connect():
+    # Connect to the PostgreSQL database.  Returns a database connection.
+    return psycopg2.connect(database='tournament', user='postgres')
+
+
+def drop():
+    co = connect()
+    cu = co.cursor()
+    cu.execute("DROP TABLE IF EXISTS players CASCADE;")
+    cu.execute("DROP TABLE IF EXISTS matches CASCADE;")
+    cu.execute("DROP TABLE IF EXISTS auditlog CASCADE;")
+    co.commit()
+    cu.close()
+    co.close()
+    return 0
+
+
+def truncate(table):
+    co = connect()
+    cu = co.cursor()
+    cu.execute("TRUNCATE " + table + ";")
+    co.commit()
+    cu.close()
+    co.close()
+
+
+# Create database contents
+def create():
+    co = connect()
+    cu = co.cursor()
+    cu.execute("CREATE TABLE players(id serial NOT NULL,"
+               "name text NOT NULL, country text "
+               "NOT NULL, code text, CONSTRAINT players_pkey PRIMARY KEY (id))"
+               "WITH (OIDS=FALSE);")
+    cu.execute("ALTER TABLE players OWNER TO postgres;")
+    cu.execute("CREATE TABLE matches (id serial NOT NULL, "
+               "player_1 text NOT NULL, player_2 "
+               "text NOT NULL, winner text NOT NULL, "
+               "\"timestamp\" text NOT NULL,"
+               "CONSTRAINT matches_pkey PRIMARY KEY (id))"
+               "WITH (OIDS=FALSE);")
+    cu.execute("ALTER TABLE matches OWNER TO postgres;")
+    cu.execute("CREATE TABLE auditlog ("
+               "id serial NOT NULL,"
+               "entry text NOT NULL,"
+               "action text NOT NULL,"
+               "unique_id text NOT NULL,"
+               "\"timestamp\" text NOT NULL,"
+               "CONSTRAINT auditlog_pkey PRIMARY KEY (id)) WITH (OIDS=FALSE);")
+    cu.execute("ALTER TABLE auditlog OWNER TO postgres;")
+    co.commit()
+    cu.close()
+    co.close()
+    return 0
+
+
 def create_dummy_data():
-    tcdbfunc.drop()
-    database.sql(open("../sql/data.sql", "r").read())
+    drop()
+    database.sql(open("sql/data.sql", "r").read())
 
 
 def dummy_player(player_name="", country=""):
     s = tournament.new_player(player_name=player_name, country=country)
     return s
+
+
+class TestCreateDatabaseTable(unittest.TestCase):
+    def test_connect_to_database(self):
+        """test connection to database 'tournament'"""
+        tests.tcdbfunc.connect()
+
+    def test_drop_database_tables_if_exist(self):
+        """setup process: drop tables from database if they exist"""
+        self.assertEqual(tests.tcdbfunc.drop(), 0)
+
+    def test_create_database_tables(self):
+        """create database tables 'players', 'matches', 'auditlog'"""
+        self.assertEqual(tests.tcdbfunc.drop(), 0)
+        self.assertEqual(tests.tcdbfunc.create(), 0)
+
+
+class TestMainDatabaseConnector(unittest.TestCase):
+    def test_connect_to_database(self):
+        """test connection to database 'tournament'"""
+        database.connect()
 
 
 class BaseTestCase(unittest.TestCase):
@@ -370,7 +447,7 @@ class TestListWinRanking(BaseTestCase):
     def test_no_matches(self):
         """list_win_ranking() throws SystemExit when there are no matches to
         calculate wins against."""
-        tcdbfunc.truncate('matches')
+        truncate('matches')
         with self.assertRaises(SystemExit):
             tournament.list_win_ranking()
 
@@ -390,7 +467,7 @@ class TestAuditLog(BaseTestCase):
     def test_no_log_entries(self):
         """display_log() throws SystemExit when there are no log entries to
         display"""
-        tcdbfunc.truncate("auditlog")
+        truncate("auditlog")
         with self.assertRaises(SystemExit):
             tournament.display_log()
 
