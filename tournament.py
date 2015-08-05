@@ -472,7 +472,8 @@ def display_log(see_all=False):
         tools.logger("User requested ALL entries.", "display_log()")
         count = 9999999
         start = time.time()
-        results = db.search("auditlog", "LOGS", count)
+        q = "SELECT * FROM auditlog ORDER BY id DESC LIMIT %s" % str(count)
+        results = db.query(q)
         tools.logger("Retrieved results x9999999.", "display_log()")
         table = PrettyTable(['#', 'ENTRY', 'ACTION', 'UNIQUE ID', 'TIMESTAMP'])
         table.align = 'l'
