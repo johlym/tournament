@@ -57,7 +57,12 @@ def new_player(player_name="", country=""):
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
-    db.register_player(player_name, country, code)
+    q1 = "\'%s\'" % player_name
+    q2 = "\'%s\'" % country
+    q3 = "\'%s\'" % code
+    q = "INSERT INTO players (name, country, code) " \
+        "VALUES (%s, %s, %s);" % (q1, q2, q3)
+    db.query(q)
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
@@ -126,6 +131,7 @@ def list_players(limit=""):
         print "Here's a list of all players in the database: "
         start = time.time()
         count = len(results)
+        print results
         print tools.table_gen(['ID', 'Name', 'Country'], results, "l")
         stop = time.time()
 
@@ -206,9 +212,9 @@ def swiss_match():
     bye = ''
     round_number = 0
     start = time.time()
-    players_list1 = db.count_players()
+    players_list = db.count_players()
     # Count the number of players in the list
-    count = len(players_list1)
+    count = len(players_list)
     if count == 0:
         raise ValueError("No players found.")
     tools.logger("Found %i players in list for swiss matchups." % count,
@@ -219,17 +225,19 @@ def swiss_match():
         tools.logger("Popping off the odd player (#%i) out." % count,
                      "swiss_match()")
         # simple math.
-        bye = players_list1[count - 1]
-        players_list1.pop(count - 1)
-        print len(players_list1)
+        bye = players_list[count - 1]
+        players_list.pop(count - 1)
+        print len(players_list)
     # Since it's technically pure coincidence that the entries were in order,
     # we need to explicitly sort them. Defaults to the ID for sorting as it's
     # the first non-symbol in each entry.
     # If we did the list organization in the database, it would require extra
     # cycles in the code to get the data right.
-    players_list1 = sorted(players_list1)
+    players_list = sorted(players_list)
+    players_list1 = players_list[:len(players_list)/2]
+    players_list2 = players_list[len(players_list)/2:]
     # Flip the second dict; faster than using the reversed() builtin.
-    players_list2 = sorted(players_list1, reverse=True)
+    players_list2 = sorted(players_list2, reverse=True)
     tx = PrettyTable(["TEAM A", "TEAM B"])
     tx.align = "c"
     tx.hrules = False
@@ -241,7 +249,8 @@ def swiss_match():
     tx.add_row([ta, tb])
     tools.logger("Generated COMPLETE table for display", "swiss_match()")
     print tx
-    print "Bye: " + bye[1]
+    if bye:
+        print "Bye: " + bye[1]
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
@@ -408,10 +417,10 @@ def list_win_ranking():
     for row in results:
         count += 1
         player = db.search("players", "CODE", row[0])
-        for entry in player:
-            name = entry[1]
-        if name == '':
+        if not player:
             name = "[PLAYER DELETED]"
+        for p in player:
+            name = p[1]
         table.add_row([count, name, row[1]])
     print table
     stop = time.time()
@@ -482,9 +491,8 @@ def argument_parser():
                         dest='new_player',
                         action='store',
                         nargs='+',
-                        metavar='\"FIRST LAST COUNTRY\"',
-                        help='Create a new player. '
-                             'Give a Name wrapped in quotes.')
+                        metavar='FIRST LAST COUNTRY',
+                        help='Create a new player.')
 
     # NEW MATCH function
     parser.add_argument('--new-match', '-m',

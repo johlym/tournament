@@ -26,18 +26,13 @@ def sql(fileinput):
     connection.close()
 
 
-def sql_lookup_query(function, table="", rid="", limit="", sort=""):
-    # multifunction sql... function.
-    if not function:
-        raise AttributeError("No function provided")
-    if not limit:
-        limit = "100"
-    if not sort:
-        sort = "DESC"
+def query(query):
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("%s FROM %s WHERE id = %s LIMIT %s %s" %
-                    (function, table, rid, limit, sort))
+    cursor.execute(query)
+    connection.commit()
+    cursor.close()
+    connection.close()
 
 
 def delete_match(match_id):
@@ -162,18 +157,6 @@ def count_players():
     cursor.close()
     connection.close()
     return rows
-
-
-def register_player(name, country, code):
-    # Registers a new player in the database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO players (name, country, code) "
-                   "VALUES (\'" + name + "\',"
-                   " \'" + country + "\', \'" + code + "\');")
-    connection.commit()
-    cursor.close()
-    connection.close()
 
 
 def player_standings():
