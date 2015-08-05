@@ -167,7 +167,7 @@ def go_match(p1="", p2=""):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
     tools.logger("Starting match between " + p1 + " and " + p2,
                  "go_match()")
-    q = "SELECT * FROM players WHERE id=%s" % (p1)
+    q = "SELECT * FROM players WHERE id=%s" % p1
     code_lookup = db.query(q)
     if not code_lookup:
         raise LookupError("Player 1 ID does not exist.")
@@ -205,7 +205,7 @@ def go_match(p1="", p2=""):
         tools.logger("Stated that player 2 wins.", "go_match()")
         winner = p2_code
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    q = "INSERT INTO matches (p1, p2, winner, timestamp) " \
+    q = "INSERT INTO matches (player_1, player_2, winner, timestamp) " \
         "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2, winner, ts)
     db.query(q)
     tools.logger("Reported win to database.", "go_match()")
@@ -219,7 +219,8 @@ def swiss_match():
     bye = ''
     round_number = 0
     start = time.time()
-    players_list = db.count_players()
+    q = "SELECT * FROM players;"
+    players_list = db.query(q)
     # Count the number of players in the list
     count = len(players_list)
     if count == 0:
@@ -422,7 +423,10 @@ def list_win_ranking():
     # get list of players and their IDs
     # for each player, count the number of times they won in every match
     start = time.time()
-    results = db.player_standings()
+    q = "SELECT winner, count(winner) FROM matches GROUP BY winner " \
+        "ORDER BY count DESC " \
+        "LIMIT 5"
+    results = db.query(q)
     if not results:
         raise SystemExit("No Matches Found to Rank.")
     table = PrettyTable(['#', 'PLAYER', 'WINS'])

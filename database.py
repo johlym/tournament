@@ -17,15 +17,6 @@ def connect():
                             password=cfg.DATABASE_PASSWORD)
 
 
-def sql(fileinput):
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute(fileinput)
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
 def query(query):
     connection = connect()
     cursor = connection.cursor()
@@ -40,32 +31,10 @@ def query(query):
     return results
 
 
-def count_players():
-    # Returns the number of players currently registered.
+def bulksql(query):
     connection = connect()
     cursor = connection.cursor()
-    cursor.execute("SELECT * FROM players;")
-    count = cursor.rowcount
-    tools.logger("Retrieved " + str(count) + " rows "
-                 "from the tournament.players.", "trn.count_players()")
-    rows = cursor.fetchall()
+    cursor.execute(query)
     connection.commit()
     cursor.close()
     connection.close()
-    return rows
-
-
-def player_standings():
-    # Return player ranking, limiting to the top five players.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("select winner, count(winner) "
-                   "FROM matches "
-                   "GROUP BY winner "
-                   "ORDER BY count desc "
-                   "LIMIT 5;")
-    rows = cursor.fetchall()
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return rows

@@ -44,7 +44,7 @@ def create():
                "WITH (OIDS=FALSE);")
     cu.execute("ALTER TABLE players OWNER TO postgres;")
     cu.execute("CREATE TABLE matches (id serial NOT NULL, "
-               "player_1 text NOT NULL, player_2 "
+               "p1 text NOT NULL, p2 "
                "text NOT NULL, winner text NOT NULL, "
                "\"timestamp\" text NOT NULL,"
                "CONSTRAINT matches_pkey PRIMARY KEY (id))"
@@ -66,7 +66,7 @@ def create():
 
 def create_dummy_data():
     drop()
-    database.sql(open("sql/data.sql", "r").read())
+    database.bulksql(open("sql/data.sql", "r").read())
 
 
 def dummy_player(player_name="", country=""):
@@ -203,15 +203,17 @@ class TestEditPlayer(BaseTestCase):
 
     def test_option_edit(self):
         """edit_player() edits player with new info provided"""
-        r = database.search("players", "LATEST", "1")
+        q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+        r = database.query(q)
         s = str(r[0][0])
         self.assertEquals(tournament.edit_player(option="edit", player=s,
-                                            new_name="Johan Sebastian Bach",
-                                            new_country="Guam"), 0)
+                                                 new_name="Johan Bach",
+                                                 new_country="Guam"), 0)
 
     def test_option_delete(self):
         """edit_player() deletes player"""
-        r = database.search("players", "LATEST", "1")
+        q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+        r = database.query(q)
         s = str(r[0][0])
         self.assertEquals(tournament.edit_player(option="delete", player=s), 0)
 
@@ -240,7 +242,7 @@ class TestEditPlayer(BaseTestCase):
         """edit_player() should throw if the player ID is invalid"""
         with self.assertRaises(AttributeError):
             tournament.edit_player(option="delete", player="38471237401238",
-                              new_name="Michael Bay", new_country="Japan")
+                                   new_name="Michael Bay", new_country="Japan")
 
 
 class TestListPlayers(BaseTestCase):
@@ -249,107 +251,97 @@ class TestListPlayers(BaseTestCase):
 
     def test_display_zero_matches(self):
         """list_players() returns 1 if the tournament.Players table is empty"""
-        database.delete_all_players()
+        q = "TRUNCATE TABLE players;"
+        database.query(q)
         self.assertEqual(tournament.list_players(), 1)
 
     def test_list_players(self):
         """list_players() returns 0 if it works."""
-        dummy_player(player_name="Markola Gercola", country="Gerania")
+        dummy_player(player_name="Mark German", country="Germany")
         self.assertEqual(tournament.list_players(), 0)
-
-    def test_1000_players(self):
-        """list_players() displays 1000 entries in tournament.Players"""
-        for i in range(1, 1001):
-            self.assertEqual(dummy_player(player_name="Roman Grecko",
-                                          country="Italy"), 0)
-        self.assertEqual(tournament.list_players(), 0)
-
-    def test_limit5_players(self):
-        """list_players() should honor a preset limit"""
-        for i in range(1, 6):
-            self.assertEqual(dummy_player(player_name="Roendka Keosna",
-                                          country="Armadadaea"), 0)
-        self.assertEqual(tournament.list_players(limit="5"), 0)
-
-    def test_limit_contains_letter(self):
-        """list_players() throws if limit contains a letter"""
-        with self.assertRaises(AttributeError):
-            tournament.list_players(limit="A")
-
-    def test_limit_contains_symbol(self):
-        """list_players() throws if limit contains a symbol"""
-        with self.assertRaises(AttributeError):
-            tournament.list_players(limit="@")
 
 
 class TestNewMatch(BaseTestCase):
     def test_new_match(self):
         """go_match() returns 0 when a match was successful"""
-        database.delete_all_players()
+        q = "TRUNCATE TABLE players;"
+        database.query(q)
         self.assertEqual(dummy_player(player_name="Eonadbanad Emeenaks",
                                       country="Rrooa"), 0)
-        p = database.search("players", "LATEST", "null")
+        q = "SELECT * FROM players ORDER BY id LIMIT 1"
+        p = database.query(q)
+        print p
         i1 = str(p[0][0])
+        print i1
         self.assertEqual(dummy_player(player_name="Big Mac Mcdonalds",
                                       country="Playland"), 0)
-        p = database.search("players", "LATEST", "null")
+        q = "SELECT * FROM players ORDER BY id LIMIT 1"
+        p = database.query(q)
+        print p
         i2 = str(p[0][0])
-        self.assertEqual(tournament.go_match(player_1=i1, player_2=i2), 0)
+        print i1
+        self.assertEqual(tournament.go_match(p1=i1, p2=i2), 0)
         
     def test_less_than_two_players(self):
         """go_match() throws if both players are not provided"""
         with self.assertRaises(AttributeError):
-            tournament.go_match(player_1=9, player_2="")
+            tournament.go_match(p1=9, p2="")
         
-    def test_player_1_not_valid(self):
+    def test_p1_not_valid(self):
         """go_match() throws if player 1 is not valid"""
-        database.delete_all_players()
+        q = "TRUNCATE TABLE players;"
+        database.query(q)
         self.assertEqual(dummy_player(player_name="Double Quarder",
                                       country="Playland"), 0)
-        p = database.search("players", "LATEST", "null")
+        q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+        p = database.query(q)
         i1 = p[0][0]
         self.assertEqual(dummy_player(player_name="Big Mac Sauce",
                                       country="Playland"), 0)
-        p = database.search("players", "LATEST", "null")
+        q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+        p = database.query(q)
         i2 = str(p[0][0])
         i1 = str(i1 + 2)
         with self.assertRaises(LookupError):
-            tournament.go_match(player_1=i1, player_2=i2)
+            tournament.go_match(p1=i1, p2=i2)
         
-    def test_player_2_not_valid(self):
+    def test_p2_not_valid(self):
         """go_match() throws if player 2 is not valid"""
-        database.delete_all_players()
+        q = "TRUNCATE TABLE players;"
+        database.query(q)
         self.assertEqual(dummy_player(player_name="Fissh Fillay",
                                       country="Playland"), 0)
-        p = database.search("players", "LATEST", "null")
+        q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+        p = database.query(q)
         i1 = str(p[0][0])
         self.assertEqual(dummy_player(player_name="Kulv Sangwich",
                                       country="Playland"), 0)
-        p = database.search("players", "LATEST", "null")
+        q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+        p = database.query(q)
         i2 = p[0][0]
         i2 = str(i2 + 2)
         with self.assertRaises(LookupError):
-            tournament.go_match(player_1=i1, player_2=i2)
+            tournament.go_match(p1=i1, p2=i2)
         
-    def test_player_1_contains_letter(self):
+    def test_p1_contains_letter(self):
         """go_match() throws if player 1 ID contains letter"""
         with self.assertRaises(AttributeError):
-            tournament.go_match(player_1="A", player_2=1)
+            tournament.go_match(p1="A", p2=1)
         
-    def test_player_1_contains_symbol(self):
+    def test_p1_contains_symbol(self):
         """go_match() throws if player 1 ID contains symbol"""
         with self.assertRaises(AttributeError):
-            tournament.go_match(player_1="$", player_2=1)
+            tournament.go_match(p1="$", p2=1)
         
-    def test_player_2_contains_letter(self):
+    def test_p2_contains_letter(self):
         """go_match() throws if player 2 ID contains letter"""
         with self.assertRaises(AttributeError):
-            tournament.go_match(player_1=2, player_2="A")
+            tournament.go_match(p1=2, p2="A")
         
-    def test_player_2_contains_symbol(self):
+    def test_p2_contains_symbol(self):
         """go_match() throws if player 2 ID contains symbol"""
         with self.assertRaises(AttributeError):
-            tournament.go_match(player_1=2, player_2="%")
+            tournament.go_match(p1=2, p2="%")
 
 
 class TestSwissMatching(BaseTestCase):
@@ -362,8 +354,9 @@ class TestSwissMatching(BaseTestCase):
 
     def test_count_players(self):
         """number of players counted equals count(players) in database"""
-        players_list1 = database.count_players()
-        count = len(players_list1)
+        q = "SELECT * FROM players;"
+        results = database.query(q)
+        count = len(results)
         self.assertEqual(tournament.swiss_match()[1], count)
 
     def test_modulo(self):
@@ -372,7 +365,8 @@ class TestSwissMatching(BaseTestCase):
 
     def test_no_players(self):
         """swiss_match() throws if there are no players in the database"""
-        database.delete_all_players()
+        q = "TRUNCATE TABLE players;"
+        database.query(q)
         with self.assertRaises(ValueError):
             tournament.swiss_match()
 
@@ -387,7 +381,8 @@ class TestDeleteMatch(BaseTestCase):
 
     def test_no_matches_found(self):
         """list_match() throws SystemExit when no matches found"""
-        database.delete_all_matches()
+        q = "TRUNCATE TABLE matches;"
+        database.query(q)
         with self.assertRaises(SystemExit):
             tournament.list_matches()
 
