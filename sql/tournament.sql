@@ -54,3 +54,10 @@ CREATE TABLE auditlog
 WITH (
   OIDS=FALSE
 );
+
+CREATE VIEW countmatches AS
+  SELECT COUNT(winner) FROM matches;
+
+CREATE VIEW standings AS
+  SELECT winner, count(winner) FROM matches GROUP BY winner ORDER BY count
+  DESC LIMIT 5;
