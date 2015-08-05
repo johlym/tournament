@@ -172,7 +172,7 @@ def go_match(p1="", p2=""):
     for row in code_lookup:
         p1_code = row[3]
         q = "SELECT * FROM players WHERE code=\'%s\'" % p1_code
-        player_name = db.query(1)
+        player_name = db.query(q)
         for result in player_name:
             p1_name = result[1]
     q = "SELECT * FROM players WHERE id=%s" % (p2)
@@ -182,7 +182,7 @@ def go_match(p1="", p2=""):
     for row in code_lookup:
         p2_code = row[3]
         q = "SELECT * FROM players WHERE code=\'%s\'" % p2_code
-        player_name = db.query(1)
+        player_name = db.query(q)
         for result in player_name:
             p2_name = result[1]
     print "%s vs. %s... " % (p1_name, p2_name),
@@ -290,9 +290,9 @@ def delete_match(match=""):
     if not match:
         raise ValueError("An ID # is required.")
     start = time.time()
-    db.delete_match(match)
-    tools.logger("Deleted match %s from the database" % match,
-                 "delete_match()")
+    q = "DELETE FROM matches where id=%s" % (match)
+    db.query(q)
+    tools.logger("Deleted match %s from the database")
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),

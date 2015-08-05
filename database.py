@@ -40,62 +40,6 @@ def query(query):
     return results
 
 
-def delete_match(match_id):
-    # Remove all the match records from the database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM matches WHERE id = " + str(match_id) + ";")
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def delete_all_matches():
-    # Clears the match database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM matches;")
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def delete_all_players():
-    # Clears the match database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM players;")
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
-def count_matches():
-    # Counts the number of matches in the database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("SELECT COUNT(winner) FROM matches ")
-    number = cursor.fetchall()
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return number
-
-
-def count_wins(player_code):
-    # Remove all the player records from the database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("SELECT COUNT(winner)"
-                   "FROM matches "
-                   "WHERE winner LIKE '%" + player_code + "%';")
-    number = cursor.fetchall()
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return number
-
-
 # A fancy multi-purpose function that we can use to search ANY of the tables,
 #  provided we give the right criteria.
 
