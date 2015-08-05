@@ -26,6 +26,27 @@ Run the script on the command line with a 2.7x python interpreter with one of
 - Python >= 2.7
 - PostgreSQL >= 9.3
 
+## Installation
+
+### Pre-requisites
+
+Use `pip` and install:
+- psycopg2 (`pip install psycopg2`)
+- PrettyTable (`pip install PrettyTable`)
+
+If you don't have `pip`, follow [these](https://pip.pypa
+.io/en/latest/installing.html) instructions.
+
+Make sure you have PostgreSQL already installed. Using the command line, run 
+the following:
+
+`psql -f sql/tournament.sql`
+
+If you have the pgAdmin installed, you can open `tournament.sql` and paste 
+its contents into a new SQL query within the UI and run from there.
+
+## Using the App
+
 ### Arguments
 
 Here's a breakdown of all the arguments that can be passed by the user:

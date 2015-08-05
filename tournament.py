@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 
-__author__ = 'jlyman'
-
-# TOURNAMENT MATCHUP APPLICATION
-# Simulates 1-on-1 matchups and swiss ranked matches. Queries a pgSQL database
-# for match and player information.
-
-# ordering imports alphabetically is good a good pythonism.
+"""
+TOURNAMENT MATCHUP APPLICATION
+ Simulates 1-on-1 matchups and swiss ranked matches. Queries a pgSQL database
+ for match and player information.
+"""
 
 import argparse as arg
 import config as cfg
@@ -21,8 +19,10 @@ import time
 import tools
 
 
-# Let's check to make sure the user is running at least Python 2.7. Since
-# this app was coded with that version, it would make sense.
+"""
+Let's check to make sure the user is running at least Python 2.7. Since
+this app was coded with that version, it would make sense.
+"""
 
 def check_version(sys_version):
     if sys_version < (2, 7):
@@ -37,21 +37,29 @@ def check_version(sys_version):
 
 # PLAYER ORIENTED FUNCTIONS #
 
-# Create a new player based on their name and country of origin. We expect
-# the following:
-# - Player Name
-# - Player Country of Origin
+"""
+Create a new player based on their name and country of origin. We expect
+the following:
+- Player Name
+- Player Country of Origin
+"""
+
 
 def new_player(player_name="", country=""):
+    # check for numbers in player name
     if re.search('[0-9]', player_name):
         raise AttributeError("Player name is invalid (contains numbers)")
+    # check if player name is shorter than 2 char.
     if len(player_name) < 2:
         raise AttributeError("Player name is less than 2 characters.")
+    # player name is missing surname
     if " " not in player_name:
         raise AttributeError("Player name is invalid. (missing surname)")
+    # player name shouldn't contain symbols
     if re.search('[!@#$%^&*\(\)~`+=]', player_name):
         raise AttributeError("Player name is invalid. (contains symbol(s))")
     tools.logger("Received player name " + player_name, "new_player()")
+    # if a country isn't provided.
     if not country:
         raise SystemExit("Country of Origin Not Provided.")
     tools.logger("Received player country " + country, "new_player()")
@@ -71,17 +79,21 @@ def new_player(player_name="", country=""):
     return 0
 
 
-# Delete an existing player based on their ID. We expect the following:
-# - Option (edit or delete)
-# - Player ID
-# - New Player Name (if edit)
-# - New Country of Origin (if edit)
+"""
+Delete an existing player based on their ID. We expect the following:
+- Option (edit or delete)
+- Player ID
+- New Player Name (if edit)
+- New Country of Origin (if edit)
+"""
+
 
 def edit_player(option="", player="", new_name="", new_country=""):
     if option == "delete":
         start = time.time()
         q = "SELECT * FROM players WHERE id=%s" % player
         search = db.query(q)
+        # if player ID wasn't found in search
         if not search:
             raise AttributeError("Invalid Player ID.")
         q = "DELETE FROM players " \
@@ -97,6 +109,7 @@ def edit_player(option="", player="", new_name="", new_country=""):
         start = time.time()
         q = "SELECT * FROM players WHERE id=%s" % player
         search = db.query(q)
+        # if player ID wasn't found in search
         if not search:
             raise AttributeError("Invalid Player ID.")
         q = "UPDATE players " \
@@ -105,7 +118,7 @@ def edit_player(option="", player="", new_name="", new_country=""):
         db.query(q)
         tools.logger("Updated %s." % player, "edit_player()")
         stop = time.time()
-    else:
+    else:  # if we're not editing nor deleting, error out
         raise AttributeError("OPTION Not Supported: '%s'" % option)
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -114,9 +127,12 @@ def edit_player(option="", player="", new_name="", new_country=""):
     return 0
 
 
-# Get a list of players based on criteria and display method. We expect the
-# following:
-# - Limit to display
+"""
+Get a list of players based on criteria and display method.
+We expect the following:
+- Limit to display
+"""
+
 
 def list_players():
     print "List All Players."
@@ -124,7 +140,7 @@ def list_players():
     q = "SELECT * FROM players;"
     results = db.query(q)
     print results
-    if not results:
+    if not results:  # if there aren't any players
         print "No players found."
         status = 1
     else:
@@ -146,30 +162,38 @@ def list_players():
 
 # MATCH ORIENTED FUNCTIONS #
 
-# Initiate a match. We expect the following:
-# - ID of Player 1
-# - ID of Player 2
+"""
+Initiate a match. We expect the following:
+- ID of Player 1
+- ID of Player 2
+"""
+
 
 def go_match(p1="", p2=""):
     p1_code = ''
     p2_code = ''
     p1_name = ''
     p2_name = ''
+    # if both players aren't provided
     if not (p1 and p2):
         raise AttributeError("Both player IDs need to be provided.")
+    # if player 1's ID contains one or more letters
     if re.search('[A-Za-z]', str(p1)):
         raise AttributeError("Player 1 ID contains letter(s).")
+    # if player 2's ID contains one or more letters
     if re.search('[A-Za-z]', str(p2)):
         raise AttributeError("Player 2 ID contains letter(s).")
+    # if player 1's ID contains one or more symbols
     if re.search('[!@#$%^&*\(\)~`+=]', str(p1)):
         raise AttributeError("Player 1 ID is invalid. (contains symbol(s))")
+    # if player 2's ID contains one or more symbols
     if re.search('[!@#$%^&*\(\)~`+=]', str(p2)):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
     tools.logger("Starting match between " + p1 + " and " + p2,
                  "go_match()")
     q = "SELECT * FROM players WHERE id=%s" % p1
     code_lookup = db.query(q)
-    if not code_lookup:
+    if not code_lookup:  # if player 1 can't be found
         raise LookupError("Player 1 ID does not exist.")
     for row in code_lookup:
         p1_code = row[3]
@@ -177,9 +201,9 @@ def go_match(p1="", p2=""):
         player_name = db.query(q)
         for result in player_name:
             p1_name = result[1]
-    q = "SELECT * FROM players WHERE id=%s" % (p2)
+    q = "SELECT * FROM players WHERE id=%s" % p2
     code_lookup = db.query(q)
-    if not code_lookup:
+    if not code_lookup:  # if player 2 can't be found
         raise LookupError("Player 2 ID does not exist.")
     for row in code_lookup:
         p2_code = row[3]
@@ -213,7 +237,9 @@ def go_match(p1="", p2=""):
     return status
 
 
-# match up each of the players in the database and swiss-ify them.
+"""
+match up each of the players in the database and swiss-ify them.
+"""
 
 def swiss_match():
     bye = ''
@@ -236,17 +262,18 @@ def swiss_match():
         bye = players_list[count - 1]
         players_list.pop(count - 1)
         print len(players_list)
-    # Since it's technically pure coincidence that the entries were in order,
-    # we need to explicitly sort them. Defaults to the ID for sorting as it's
-    # the first non-symbol in each entry.
-    # If we did the list organization in the database, it would require extra
-    # cycles in the code to get the data right.
+    """ Since it's technically pure coincidence that the entries were in order,
+    we need to explicitly sort them. Defaults to the ID for sorting as it's
+    the first non-symbol in each entry.
+    If we did the list organization in the database, it would require extra
+    cycles in the code to get the data right. """
     players_list = sorted(players_list)
     players_list1 = players_list[:len(players_list)/2]
     players_list2 = players_list[len(players_list)/2:]
     # Flip the second dict; faster than using the reversed() builtin.
     players_list2 = sorted(players_list2, reverse=True)
     tx = PrettyTable(["TEAM A", "TEAM B"])
+    # some master table settings we need to declare for formatting purposes
     tx.align = "c"
     tx.hrules = False
     tx.vrules = False
@@ -279,15 +306,15 @@ def swiss_match():
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
     print "Swiss matchups complete."
-    # cake.
-    # profit.
-    # THE CAKE IS A LIE.
     status = 0
     return [status, count, bye]
 
 
-# Delete an existing match. We expect the following:
-# - Match ID
+"""
+Delete an existing match. We expect the following:
+- Match ID
+"""
+
 
 def delete_match(match=""):
     if not match:
@@ -304,7 +331,10 @@ def delete_match(match=""):
     return 0
 
 
-# Display all historical matches.
+"""
+Display all historical matches.
+"""
+
 
 def list_matches():
     name = ''
@@ -340,8 +370,10 @@ def list_matches():
     print "Returned %s results in %s seconds" % (count, dur[:5])
     return 0
 
+"""
+Get the latest match's information
+"""
 
-# Get the latest match's information
 
 def latest_match():
     print "The Latest Match"
@@ -373,8 +405,11 @@ def latest_match():
     return returned_id
 
 
-# Get the latest match's information. We expect the following:
-# - Match ID
+"""
+Get the latest match's information. We expect the following:
+- Match ID
+"""
+
 
 def lookup_match(match=""):
     if not match:
@@ -414,7 +449,9 @@ def lookup_match(match=""):
     return 0
 
 
-# Rank Players by Number of Wins.
+"""
+Rank Players by Number of Wins.
+"""
 
 def list_win_ranking():
     print "List Ranking of Players by Wins"
@@ -450,7 +487,9 @@ def list_win_ranking():
     return 0
 
 
-# Any good app keeps a log. We can optionally display all with see_all.
+"""
+Any good app keeps a log. We can optionally display all with see_all.
+"""
 
 def display_log(see_all=False):
     count = 20
@@ -499,9 +538,12 @@ def display_log(see_all=False):
     return 0
 
 
-# Using command-line arguments to control actions. User can use flags to run
-# certain, pre-defined scenarios. This will also allow for reuse of code where
-# applicable.
+"""
+Using command-line arguments to control actions. User can use flags to run
+certain, pre-defined scenarios. This will also allow for reuse of code where
+applicable.
+"""
+
 
 def argument_parser():
     parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
