@@ -595,7 +595,8 @@ def argument_parser():
     parser.add_argument('--edit-player', '-e',
                         dest='edit_player',
                         action='store',
-                        metavar='ID',
+                        nargs='+',
+                        metavar='ID NEWNAME NEWCOUNTRY',
                         help='Edit a player\'s exiting information.')
 
     # DELETE MATCH function
@@ -656,8 +657,10 @@ def main():
                     player=str(args.delete_player))
 
     if args.edit_player:
+        name = "%s %s" % (args.edit_player[1], args.edit_player[2])
         edit_player(option="edit",
-                    player=str(args.edit_player))
+                    player=str(args.edit_player[0]),
+                    new_name=name, new_country=args.edit_player[3] )
 
     if args.list_players:
         list_players()
