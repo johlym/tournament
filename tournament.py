@@ -11,6 +11,7 @@ __author__ = 'jlyman'
 import argparse as arg
 import config as cfg
 import database as db
+import datetime
 from decimal import Decimal
 from prettytable import PrettyTable
 import random
@@ -115,19 +116,12 @@ def edit_player(option="", player="", new_name="", new_country=""):
 # following:
 # - Limit to display
 
-def list_players(limit=""):
+def list_players():
     print "List All Players."
     tools.logger("Requesting all players in the database.", "list_players()")
-    if limit:
-        if re.search('[A-Za-z]', limit):
-            raise AttributeError("Limit is invalid (contains letter(s))")
-        if re.search('[!@#$%^&*\(\)~`+=]', limit):
-            raise AttributeError("Limit is invalid. (contains symbol(s))")
-        results = db.search("players", "LIMIT", limit)
-    else:
-        q = "SELECT * FROM players;"
-        results = db.query(q)
-        print results
+    q = "SELECT * FROM players;"
+    results = db.query(q)
+    print results
     if not results:
         print "No players found."
         status = 1
@@ -154,41 +148,45 @@ def list_players(limit=""):
 # - ID of Player 1
 # - ID of Player 2
 
-def go_match(player_1="", player_2=""):
-    player_1_code = ''
-    player_2_code = ''
-    player_1_name = ''
-    player_2_name = ''
-    if not (player_1 and player_2):
+def go_match(p1="", p2=""):
+    p1_code = ''
+    p2_code = ''
+    p1_name = ''
+    p2_name = ''
+    if not (p1 and p2):
         raise AttributeError("Both player IDs need to be provided.")
-    if re.search('[A-Za-z]', str(player_1)):
+    if re.search('[A-Za-z]', str(p1)):
         raise AttributeError("Player 1 ID contains letter(s).")
-    if re.search('[A-Za-z]', str(player_2)):
+    if re.search('[A-Za-z]', str(p2)):
         raise AttributeError("Player 2 ID contains letter(s).")
-    if re.search('[!@#$%^&*\(\)~`+=]', str(player_1)):
+    if re.search('[!@#$%^&*\(\)~`+=]', str(p1)):
         raise AttributeError("Player 1 ID is invalid. (contains symbol(s))")
-    if re.search('[!@#$%^&*\(\)~`+=]', str(player_2)):
+    if re.search('[!@#$%^&*\(\)~`+=]', str(p2)):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
-    tools.logger("Starting match between " + player_1 + " and " + player_2,
+    tools.logger("Starting match between " + p1 + " and " + p2,
                  "go_match()")
-    code_lookup = db.search("players", "ID", player_1)
+    q = "SELECT * FROM players WHERE id=%s" % (p1)
+    code_lookup = db.query(q)
     if not code_lookup:
         raise LookupError("Player 1 ID does not exist.")
     for row in code_lookup:
-        player_1_code = row[3]
-        player_name = db.search("players", "CODE", player_1_code)
+        p1_code = row[3]
+        q = "SELECT * FROM players WHERE code=\'%s\'" % p1_code
+        player_name = db.query(1)
         for result in player_name:
-            player_1_name = result[1]
-    code_lookup = db.search("players", "ID", player_2)
+            p1_name = result[1]
+    q = "SELECT * FROM players WHERE id=%s" % (p2)
+    code_lookup = db.query(q)
     if not code_lookup:
         raise LookupError("Player 2 ID does not exist.")
     for row in code_lookup:
-        player_2_code = row[3]
-        player_name = db.search("players", "CODE", player_2_code)
+        p2_code = row[3]
+        q = "SELECT * FROM players WHERE code=\'%s\'" % p2_code
+        player_name = db.query(1)
         for result in player_name:
-            player_2_name = result[1]
-    print "%s vs. %s... " % (player_1_name, player_2_name),
-    if (not player_1_name) or (not player_2_name):
+            p2_name = result[1]
+    print "%s vs. %s... " % (p1_name, p2_name),
+    if (not p1_name) or (not p2_name):
         raise ValueError("One of the two players you entered doesn't exist.")
     # Randomly pick between one or two.
     random_int = random.randrange(1, 3)
@@ -196,15 +194,18 @@ def go_match(player_1="", player_2=""):
     # If the random number is even: player 1 wins. Else: player 2 wins.
     if random_int == 2:
         # the random number is even:
-        print player_1_name + " wins!"
+        print p1_name + " wins!"
         tools.logger("Stated that player 1 wins.", "go_match()")
-        winner = player_1_code
+        winner = p1_code
     else:
         # the random number is odd:
-        print "Player " + player_2_name + " wins!"
+        print "Player " + p2_name + " wins!"
         tools.logger("Stated that player 2 wins.", "go_match()")
-        winner = player_2_code
-    db.report_match(winner, player_1, player_2)
+        winner = p2_code
+    ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
+    q = "INSERT INTO matches (p1, p2, winner, timestamp) " \
+        "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2, winner, ts)
+    db.query(q)
     tools.logger("Reported win to database.", "go_match()")
     status = 0
     return status
@@ -267,7 +268,7 @@ def swiss_match():
         print "Round %i: " % round_number,
         tools.logger("Initiating round %i against go_match()" %
                      round_number, "swiss_match()")
-        go_match(player_1=str(a[0]), player_2=str(b[0]))
+        go_match(p1=str(a[0]), p2=str(b[0]))
         tools.logger("Completed round %i against go_match()" %
                      round_number, "swiss_match()")
         stop = time.time()
@@ -589,7 +590,7 @@ def main():
 
     if args.new_match:
         players = args.new_match
-        go_match(player_1=players[0], player_2=players[1])
+        go_match(p1=players[0], p2=players[1])
 
     if args.swiss_match:
         swiss_match()

@@ -156,17 +156,3 @@ def player_standings():
     cursor.close()
     connection.close()
     return rows
-
-
-def report_match(winner, player_1, player_2):
-    # Records the outcome of a single match between two players.
-    timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("INSERT INTO matches (player_1, player_2, winner, "
-                   "timestamp) "
-                   "VALUES (\'" + player_1 + "\', \'" + player_2 + "\',"
-                   "\'" + winner + "\', \'" + timestamp + "\')")
-    connection.commit()
-    cursor.close()
-    connection.close()
