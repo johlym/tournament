@@ -85,7 +85,8 @@ def edit_player(option="", player="", new_name="", new_country=""):
         search = db.search("players", "ID", player)
         if not search:
             raise AttributeError("Invalid Player ID.")
-        db.delete_player(player)
+        q = "DELETE FROM players where id = %s" % player
+        db.query(q)
         tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
     elif option == "edit":

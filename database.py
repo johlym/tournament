@@ -77,16 +77,6 @@ def count_matches():
     return number
 
 
-def delete_player(player_id):
-    # Remove all the player records from the database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("DELETE FROM players WHERE id = " + player_id + ";")
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
 def update_player(player_id, name, country):
     # Remove all the player records from the database.
     connection = connect()
