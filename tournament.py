@@ -310,7 +310,8 @@ def list_matches():
     # display all matches in the matches table, (in groups of ten,
     # with names, eventually).
     start = time.time()
-    results = db.search("matches", "ALL", "null")
+    q = "SELECT * FROM matches;"
+    results = db.query(q)
     count = len(results)
     if count == 0:
         raise SystemExit("No matches found.")
@@ -320,7 +321,8 @@ def list_matches():
     table.align = 'l'
     for row in results:
         count += 1
-        player = db.search("players", "CODE", row[3])
+        q = "SELECT * FROM players WHERE code=\'%s\'" % row[3]
+        player = db.query(q)
         for entry in player:
             name = entry[1]
         if name == '':
