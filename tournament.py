@@ -345,13 +345,15 @@ def latest_match():
     count = 0
     returned_id = 0
     start = time.time()
-    results = db.search("matches", "LATEST", "1")
+    q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+    results = db.query(q)
     tools.logger("Retrieved latest result.", "lookup")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
-        player = db.search("players", "CODE", row[3])
+        q = "SELECT * FROM players WHERE code=\'%s\'" % row[3]
+        player = db.query(q)
         for entry in player:
             name = entry[1]
         if name == '':
@@ -383,7 +385,8 @@ def lookup_match(match=""):
     # assignment" that comes up if we lookup and the player was deleted.
     name = ''
     start = time.time()
-    results = db.search("matches", "ID", match)
+    q = "SELECT * FROM matches WHERE id=%s" % match
+    results = db.query(q)
     if not results:
         raise SystemExit("No Match Found.")
     tools.logger("Retrieved latest result.", "lookup")
@@ -391,7 +394,8 @@ def lookup_match(match=""):
     table.align = 'l'
     for row in results:
         count += 1
-        player = db.search("players", "CODE", row[3])
+        q = "SELECT * FROM players WHERE code=\'%s\'" % row[3]
+        player = db.query(q)
         for entry in player:
             name = entry[1]
         if name == '':
@@ -423,7 +427,8 @@ def list_win_ranking():
     table.align = 'l'
     for row in results:
         count += 1
-        player = db.search("players", "CODE", row[0])
+        q = "SELECT * FROM players WHERE code=\'%s\'" % row[0]
+        player = db.query(q)
         if not player:
             name = "[PLAYER DELETED]"
         for p in player:
@@ -445,7 +450,8 @@ def display_log(see_all=False):
     count = 20
     print "Displaying last 20 entries."
     start = time.time()
-    results = db.search("auditlog", "LOGS", count)
+    q = "SELECT * FROM auditlog ORDER BY id DESC LIMIT %s" % str(count)
+    results = db.query(q)
     if not results:
         raise SystemExit("No log entries.")
     tools.logger("Retrieved results x20.", "display_log()")
