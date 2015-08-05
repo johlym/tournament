@@ -57,11 +57,8 @@ def new_player(player_name="", country=""):
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
-    q1 = "\'%s\'" % player_name
-    q2 = "\'%s\'" % country
-    q3 = "\'%s\'" % code
     q = "INSERT INTO players (name, country, code) " \
-        "VALUES (%s, %s, %s);" % (q1, q2, q3)
+        "VALUES (\'%s\', \'%s\', \'%s\');" % (player_name, country, code)
     db.query(q)
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -128,7 +125,8 @@ def list_players(limit=""):
             raise AttributeError("Limit is invalid. (contains symbol(s))")
         results = db.search("players", "LIMIT", limit)
     else:
-        results = db.search("players", "ALL", "null")
+        q = "SELECT * FROM players"
+        results = db.query(q)
     if not results:
         print "No players found."
         status = 1
