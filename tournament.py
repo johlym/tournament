@@ -80,7 +80,8 @@ def new_player(player_name="", country=""):
 def edit_player(option="", player="", new_name="", new_country=""):
     if option == "delete":
         start = time.time()
-        search = db.search("players", "ID", player)
+        q = "SELECT * FROM players WHERE id=%s" % player
+        search = db.query(q)
         if not search:
             raise AttributeError("Invalid Player ID.")
         q = "DELETE FROM players " \
@@ -94,7 +95,8 @@ def edit_player(option="", player="", new_name="", new_country=""):
         player_name = new_name
         player_country = new_country
         start = time.time()
-        search = db.search("players", "ID", player)
+        q = "SELECT * FROM players WHERE id=%s" % player
+        search = db.query(q)
         if not search:
             raise AttributeError("Invalid Player ID.")
         q = "UPDATE players " \
