@@ -85,7 +85,8 @@ def edit_player(option="", player="", new_name="", new_country=""):
         search = db.search("players", "ID", player)
         if not search:
             raise AttributeError("Invalid Player ID.")
-        q = "DELETE FROM players where id = %s" % player
+        q = "DELETE FROM players " \
+            "WHERE id = %s" % player
         db.query(q)
         tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
@@ -98,7 +99,10 @@ def edit_player(option="", player="", new_name="", new_country=""):
         search = db.search("players", "ID", player)
         if not search:
             raise AttributeError("Invalid Player ID.")
-        db.update_player(player, player_name, player_country)
+        q = "UPDATE players " \
+            "SET name=%s, country=%s " \
+            "WHERE id=%s" % (player_name, player_country, player)
+        db.query(q)
         tools.logger("Updated %s." % player, "edit_player()")
         stop = time.time()
     else:
