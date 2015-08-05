@@ -97,7 +97,7 @@ def edit_player(option="", player="", new_name="", new_country=""):
         if not search:
             raise AttributeError("Invalid Player ID.")
         q = "UPDATE players " \
-            "SET name=%s, country=%s " \
+            "SET name=\'%s\', country=\'%s\' " \
             "WHERE id=%s" % (player_name, player_country, player)
         db.query(q)
         tools.logger("Updated %s." % player, "edit_player()")
