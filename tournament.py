@@ -139,7 +139,6 @@ def list_players():
     tools.logger("Requesting all players in the database.", "list_players()")
     q = "SELECT * FROM players;"
     results = db.query(q)
-    print results
     if not results:  # if there aren't any players
         print "No players found."
         status = 1
@@ -147,7 +146,6 @@ def list_players():
         print "Here's a list of all players in the database: "
         start = time.time()
         count = len(results)
-        print results
         print tools.table_gen(['ID', 'Name', 'Country'], results, "l")
         stop = time.time()
 
@@ -322,7 +320,7 @@ def delete_match(match=""):
     start = time.time()
     q = "DELETE FROM matches where id=%s" % (match)
     db.query(q)
-    tools.logger("Deleted match %s from the database")
+    tools.logger("Deleted match %s from the database", "delete_match()")
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -377,10 +375,11 @@ Get the latest match's information
 
 def latest_match():
     print "The Latest Match"
+    name = ''
     count = 0
     returned_id = 0
     start = time.time()
-    q = "SELECT * FROM matches ORDER BY id LIMIT 1"
+    q = "SELECT * FROM matches ORDER BY id DESC LIMIT 1"
     results = db.query(q)
     tools.logger("Retrieved latest result.", "lookup")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
@@ -572,7 +571,7 @@ def argument_parser():
                         help='Create a new match with swiss pairing.')
 
     # GET LATEST RESULTS function
-    parser.add_argument('--latest-match' '-l',
+    parser.add_argument('--latest-match', '-l',
                         dest='latest_match',
                         action='store_true',
                         default=False,
