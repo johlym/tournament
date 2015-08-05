@@ -77,18 +77,6 @@ def count_matches():
     return number
 
 
-def update_player(player_id, name, country):
-    # Remove all the player records from the database.
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute("UPDATE players "
-                   "SET name='" + name + "', country='" + country + "'"
-                   "WHERE id=" + player_id + ";")
-    connection.commit()
-    cursor.close()
-    connection.close()
-
-
 def count_wins(player_code):
     # Remove all the player records from the database.
     connection = connect()
