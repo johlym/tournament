@@ -30,9 +30,14 @@ def query(query):
     connection = connect()
     cursor = connection.cursor()
     cursor.execute(query)
+    if "SELECT" in query:
+        results = cursor.fetchall()
+    else:
+        results = ""
     connection.commit()
     cursor.close()
     connection.close()
+    return results
 
 
 def delete_match(match_id):

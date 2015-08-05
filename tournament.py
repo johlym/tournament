@@ -125,8 +125,9 @@ def list_players(limit=""):
             raise AttributeError("Limit is invalid. (contains symbol(s))")
         results = db.search("players", "LIMIT", limit)
     else:
-        q = "SELECT * FROM players"
+        q = "SELECT * FROM players;"
         results = db.query(q)
+        print results
     if not results:
         print "No players found."
         status = 1
