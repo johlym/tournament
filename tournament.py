@@ -74,7 +74,7 @@ def new_player(player_name="", country=""):
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
-    cursor.execute("INSERT INTO players (name, country, code) " \
+    cursor.execute("INSERT INTO players (name, country, code) "
                    "VALUES (\'%s\', \'%s\', \'%s\');" % (player_name, country, 
                                                          code))
     stop = time.time()
@@ -96,34 +96,43 @@ Delete an existing player based on their ID. We expect the following:
 """
 
 
-def edit_player(option="", player="", new_name="", new_country=""):
+def deletePlayers(player=""):
     connection = connect()
     cursor = connection.cursor()
-    if option == "delete":
-        start = time.time()
-        search = cursor.execute("SELECT * FROM players WHERE id=%s" % player)
-        # if player ID wasn't found in search
-        if not search:
-            raise AttributeError("Invalid Player ID or ID Not Found.")
-        cursor.execute("DELETE FROM players WHERE id = %s" % player)
-        stop = time.time()
-    elif option == "edit":
-        if not (new_name and new_country):
-            raise AttributeError("EDIT chosen, but new info not given.")
-        player_name = new_name
-        player_country = new_country
-        start = time.time()
-        search = cursor.execute("SELECT * FROM players WHERE id=%s" % player)
-        # if player ID wasn't found in search
-        if not search:
-            raise AttributeError("Invalid Player ID.")
-        cursor.execute("UPDATE players " \
-                       "SET name=\'%s\', country=\'%s\' " \
-                       "WHERE id=%s" % (player_name, player_country, player))
-        stop = time.time()
-    else:  # if we're not editing nor deleting, error out
-        raise AttributeError("OPTION Not Supported: '%s'" % option)
+    start = time.time()
+    cursor.execute("SELECT * FROM players WHERE id=%s" % player)
+    search = cursor.fetchall()
+    # if player ID wasn't found in search
+    if not search:
+        raise AttributeError("Invalid Player ID or ID Not Found.")
+    cursor.execute("DELETE FROM players WHERE id = %s" % player)
+    stop = time.time()
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                    rounding="ROUND_UP"))
+    print "Complete. Operation took %s seconds." % dur[:5]
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
 
+
+def editPlayers(player="", new_name="", new_country=""):
+    connection = connect()
+    cursor = connection.cursor()
+    if not (new_name and new_country):
+        raise AttributeError("EDIT chosen, but new info not given.")
+    player_name = new_name
+    player_country = new_country
+    start = time.time()
+    cursor.execute("SELECT * FROM players WHERE id=%s" % player)
+    search = cursor.fetchall()
+    # if player ID wasn't found in search
+    if not search:
+        raise AttributeError("Invalid Player ID.")
+    cursor.execute("UPDATE players "
+                   "SET name=\'%s\', country=\'%s\' "
+                   "WHERE id=%s" % (player_name, player_country, player))
+    stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
@@ -144,16 +153,22 @@ def list_players():
     connection = connect()
     cursor = connection.cursor()
     print "List All Players."
-    results = cursor.execute("SELECT * FROM players;")
+    cursor.execute("SELECT * FROM players;")
+    results = cursor.fetchall()
+    count = 0
     if not results:  # if there aren't any players
         print "No players found."
         status = 1
     else:
         print "Here's a list of all players in the database: "
         start = time.time()
-        count = len(results)
+        table = PrettyTable(['ID', 'NAME', 'COUNTRY'])
+        table.align = 'l'
+        for row in results:
+            count += 1
+            table.add_row([row[0], row[1], row[2]])
+        print table
         stop = time.time()
-
         dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                         rounding="ROUND_UP"))
         print "Returned %s results in %s seconds" % (count, dur[:5])
@@ -195,22 +210,27 @@ def go_match(p1="", p2=""):
     # if player 2's ID contains one or more symbols
     if re.search('[!@#$%^&*\(\)~`+=]', str(p2)):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
-    code_lookup = cursor.execute("SELECT * FROM players WHERE id=%s" % p1)
+    cursor.execute("SELECT * FROM players WHERE id=%s" % p1)
+    code_lookup = cursor.fetchall()
     if not code_lookup:  # if player 1 can't be found
         raise LookupError("Player 1 ID does not exist.")
     for row in code_lookup:
         p1_code = row[3]
-        player_name = cursor.execute("SELECT * FROM players "
+        cursor.execute("SELECT * FROM players "
                                      "WHERE code=\'%s\'" % p1_code)
+        player_name = cursor.fetchall()
         for result in player_name:
             p1_name = result[1]
-    code_lookup = cursor.execute("SELECT * FROM players WHERE id=%s" % p2)
+    cursor.execute("SELECT * FROM players WHERE id=%s" % p2)
+    code_lookup = cursor.fetchall()
     if not code_lookup:  # if player 2 can't be found
         raise LookupError("Player 2 ID does not exist.")
     for row in code_lookup:
         p2_code = row[3]
-        player_name = cursor.execute("SELECT * FROM players "
+        cursor.execute("SELECT * FROM players "
                                      "WHERE code=\'%s\'" % p2_code)
+        cursor.execute("SELECT * FROM players WHERE id=%s" % p2)
+        player_name = cursor.fetchall()
         for result in player_name:
             p2_name = result[1]
     print "%s vs. %s... " % (p1_name, p2_name),
@@ -229,9 +249,9 @@ def go_match(p1="", p2=""):
         winner = p2_code
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     cursor.execute("INSERT INTO matches (player_1, player_2, "
-                   "winner, timestamp) " \
+                   "winner, timestamp) "
                    "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2,
-                                                               winner, ts))
+                                                                 winner, ts))
     connection.commit()
     cursor.close()
     connection.close()
@@ -250,7 +270,8 @@ def swiss_match():
     bye = ''
     round_number = 0
     start = time.time()
-    players_list = cursor.execute("SELECT * FROM players;")
+    cursor.execute("SELECT * FROM players;")
+    players_list = cursor.fetchall()
     # Count the number of players in the list
     count = len(players_list)
     if count == 0:
@@ -320,7 +341,7 @@ def deleteMatches(match=""):
     if not match:
         raise ValueError("An ID # is required.")
     start = time.time()
-    cursor.execute("DELETE FROM matches where id=%s" % (match))
+    cursor.execute("DELETE FROM matches where id=%s" % match)
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -345,7 +366,8 @@ def list_matches():
     # display all matches in the matches table, (in groups of ten,
     # with names, eventually).
     start = time.time()
-    results = cursor.execute("SELECT * FROM matches;")
+    cursor.execute("SELECT * FROM matches;")
+    results = cursor.fetchall()
     count = len(results)
     if count == 0:
         raise SystemExit("No matches found.")
@@ -355,8 +377,9 @@ def list_matches():
     table.align = 'l'
     for row in results:
         count += 1
-        player = cursor.execute("SELECT * FROM players "
-                                "WHERE code=\'%s\'" % row[3])
+        cursor.execute("SELECT * FROM players "
+                       "WHERE code=\'%s\'" % row[3])
+        player = cursor.fetchall()
         for entry in player:
             name = entry[1]
         if name == '':
@@ -385,13 +408,15 @@ def latest_match():
     count = 0
     returned_id = 0
     start = time.time()
-    results = cursor.execute("SELECT * FROM matches ORDER BY id DESC LIMIT 1")
+    cursor.execute("SELECT * FROM matches ORDER BY id DESC LIMIT 1")
+    results = cursor.fetchall()
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
-        player = cursor.execute("SELECT * FROM players "
-                                "WHERE code=\'%s\'" % row[3])
+        cursor.execute("SELECT * FROM players "
+                       "WHERE code=\'%s\'" % row[3])
+        player = cursor.fetchall()
         for entry in player:
             name = entry[1]
         if name == '':
@@ -429,15 +454,17 @@ def lookup_match(match=""):
     # assignment" that comes up if we lookup and the player was deleted.
     name = ''
     start = time.time()
-    results = cursor.execute("SELECT * FROM matches WHERE id=%s" % match)
+    cursor.execute("SELECT * FROM matches WHERE id=%s" % match)
+    results = cursor.fetchall()
     if not results:
         raise SystemExit("No Match Found.")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
-        player = cursor.execute("SELECT * FROM players "
+        cursor.execute("SELECT * FROM players "
                                 "WHERE code=\'%s\'" % row[3])
+        player = cursor.fetchall()
         for entry in player:
             name = entry[1]
         if name == '':
@@ -468,17 +495,19 @@ def list_win_ranking():
     # get list of players and their IDs
     # for each player, count the number of times they won in every match
     start = time.time()
-    results = cursor.execute("SELECT winner, count(winner) "
+    cursor.execute("SELECT winner, count(winner) "
                              "FROM matches GROUP BY winner "
                              "ORDER BY count DESC  LIMIT 5")
+    results = cursor.fetchall()
     if not results:
         raise SystemExit("No Matches Found to Rank.")
     table = PrettyTable(['#', 'PLAYER', 'WINS'])
     table.align = 'l'
     for row in results:
         count += 1
-        player = cursor.execute("SELECT * FROM players "
+        cursor.execute("SELECT * FROM players "
                                 "WHERE code=\'%s\'" % row[0])
+        player = cursor.fetchall()
         if not player:
             name = "[PLAYER DELETED]"
         for p in player:
@@ -551,7 +580,7 @@ def argument_parser():
 
     # EDIT PLAYER function
     parser.add_argument('--edit-player', '-e',
-                        dest='edit_player',
+                        dest='editPlayers',
                         action='store',
                         nargs='+',
                         metavar='ID NEWNAME NEWCOUNTRY',
@@ -604,12 +633,12 @@ def main():
         swiss_match()
 
     if args.delete_player:
-        edit_player(option="delete",
+        editPlayers(option="delete",
                     player=str(args.delete_player))
 
     if args.edit_player:
         name = "%s %s" % (args.edit_player[1], args.edit_player[2])
-        edit_player(option="edit",
+        editPlayers(option="edit",
                     player=str(args.edit_player[0]),
                     new_name=name, new_country=args.edit_player[3])
 
