@@ -45,7 +45,7 @@ the following:
 If you have the pgAdmin installed, you can open `tournament.sql` and paste 
 its contents into a new SQL query within the UI and run from there.
 
-## Using the App
+## Using the App 
 
 ### Arguments
 
@@ -78,12 +78,6 @@ automated behavior.
 
 `--lookup-match`: Allows the user to lookup a match by `ID`.
 
-### Other
-
-`--audit-log`: All cool apps come with logging capabilities. While I never 
-seem to be quite satisfied with what's being logged, there's data being 
-recorded, anyway, and you can view the entries.
-
 ## Noteworthy
 
 * Since player `ID` numbers are unique, an `ID` of a deleted player will never 
@@ -94,3 +88,6 @@ belong to another player so in its place you'll see `[DELETED]`.
 * I opted to do some of the data manipulation in the app for the swiss 
 pairings, versus in the database query. My testing shows there was no 
 performance improvement using the latter.
+
+* Previous versions of this app included audit logging. It was more for my 
+usage than anything else. Since we're past that point, I pulled it.
