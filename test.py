@@ -205,7 +205,7 @@ class TestEditPlayer(BaseTestCase):
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
         r = tools.query(q)
         s = str(r[0][0])
-        self.assertEquals(tournament.editPlayers(option="edit", player=s,
+        self.assertEquals(tournament.editPlayers(player=s,
                                                  new_name="Johan Bach",
                                                  new_country="Guam"), 0)
 
@@ -214,18 +214,13 @@ class TestEditPlayer(BaseTestCase):
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
         r = tools.query(q)
         s = str(r[0][0])
-        self.assertEquals(tournament.editPlayers(option="delete", player=s), 0)
-
-    def test_bad_option(self):
-        """editPlayers() throws when passed a bad option"""
-        with self.assertRaises(AttributeError):
-            tournament.editPlayers(option="bad")
+        self.assertEquals(tournament.deletePlayers(player=s), 0)
 
     def test_edit_missing_new_info(self):
         """editPlayers() throws when both new_name and new_country are not
         specified"""
         with self.assertRaises(AttributeError):
-            tournament.editPlayers(option="edit", new_name="Joan Jett")
+            tournament.editPlayers(new_name="Joan Jett")
 
     def test_no_player_id(self):
         """Script should reject if --edit-player argument is empty"""
@@ -235,12 +230,12 @@ class TestEditPlayer(BaseTestCase):
     def test_delete_invalid_player_id(self):
         """editPlayers() should throw if the player ID is invalid"""
         with self.assertRaises(AttributeError):
-            tournament.editPlayers(option="delete", player="38471237401238")
+            tournament.deletePlayers(player="38471237401238")
 
     def test_edit_invalid_player_id(self):
         """editPlayers() should throw if the player ID is invalid"""
         with self.assertRaises(AttributeError):
-            tournament.editPlayers(option="delete", player="38471237401238",
+            tournament.editPlayers(player="38471237401238",
                                    new_name="Michael Bay", new_country="Japan")
 
 
