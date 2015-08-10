@@ -1,4 +1,6 @@
+-- Use this SQL file for general app usage.
 -- Create tournament database
+
 
 CREATE DATABASE tournament;
 \c tournament;
@@ -32,24 +34,6 @@ CREATE TABLE matches
   winner text NOT NULL,
   "timestamp" text NOT NULL,
   CONSTRAINT matches_pkey PRIMARY KEY (id)
-)
-WITH (
-  OIDS=FALSE
-);
-
-
--- Table: auditlog
-
--- DROP TABLE auditlog;
-
-CREATE TABLE auditlog
-(
-  id serial NOT NULL,
-  entry text NOT NULL,
-  action text NOT NULL,
-  unique_id text NOT NULL,
-  "timestamp" text NOT NULL,
-  CONSTRAINT auditlog_pkey PRIMARY KEY (id)
 )
 WITH (
   OIDS=FALSE
