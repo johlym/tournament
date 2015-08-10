@@ -11,14 +11,13 @@ trying to search for players.
 
 import time
 import unittest
-import database
 import psycopg2
 import tournament
 import tools
 
 
 def connect():
-    # Connect to the PostgreSQL database.  Returns a database connection.
+    # Connect to the PostgreSQL tools.  Returns a database connection.
     return psycopg2.connect(database='tournament', user='postgres')
 
 
@@ -66,7 +65,7 @@ def create():
 
 def create_dummy_data():
     drop()
-    database.bulksql(open("sql/data.sql", "r").read())
+    tools.bulksql(open("sql/data.sql", "r").read())
 
 
 def dummy_player(player_name="", country=""):
@@ -92,7 +91,7 @@ class TestCreateDatabaseTable(unittest.TestCase):
 class TestMainDatabaseConnector(unittest.TestCase):
     def test_connect_to_database(self):
         """test connection to database 'tournament'"""
-        database.connect()
+        tools.connect()
 
 
 class BaseTestCase(unittest.TestCase):
@@ -204,7 +203,7 @@ class TestEditPlayer(BaseTestCase):
     def test_option_edit(self):
         """edit_player() edits player with new info provided"""
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
-        r = database.query(q)
+        r = tools.query(q)
         s = str(r[0][0])
         self.assertEquals(tournament.edit_player(option="edit", player=s,
                                                  new_name="Johan Bach",
@@ -213,7 +212,7 @@ class TestEditPlayer(BaseTestCase):
     def test_option_delete(self):
         """edit_player() deletes player"""
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
-        r = database.query(q)
+        r = tools.query(q)
         s = str(r[0][0])
         self.assertEquals(tournament.edit_player(option="delete", player=s), 0)
 
@@ -252,7 +251,7 @@ class TestListPlayers(BaseTestCase):
     def test_display_zero_matches(self):
         """list_players() returns 1 if the tournament.Players table is empty"""
         q = "TRUNCATE TABLE players;"
-        database.query(q)
+        tools.query(q)
         self.assertEqual(tournament.list_players(), 1)
 
     def test_list_players(self):
@@ -265,18 +264,18 @@ class TestNewMatch(BaseTestCase):
     def test_new_match(self):
         """go_match() returns 0 when a match was successful"""
         q = "TRUNCATE TABLE players;"
-        database.query(q)
+        tools.query(q)
         self.assertEqual(dummy_player(player_name="Eonadbanad Emeenaks",
                                       country="Rrooa"), 0)
         q = "SELECT * FROM players ORDER BY id LIMIT 1"
-        p = database.query(q)
+        p = tools.query(q)
         print p
         i1 = str(p[0][0])
         print i1
         self.assertEqual(dummy_player(player_name="Big Mac Mcdonalds",
                                       country="Playland"), 0)
         q = "SELECT * FROM players ORDER BY id LIMIT 1"
-        p = database.query(q)
+        p = tools.query(q)
         print p
         i2 = str(p[0][0])
         print i1
@@ -290,16 +289,16 @@ class TestNewMatch(BaseTestCase):
     def test_p1_not_valid(self):
         """go_match() throws if player 1 is not valid"""
         q = "TRUNCATE TABLE players;"
-        database.query(q)
+        tools.query(q)
         self.assertEqual(dummy_player(player_name="Double Quarder",
                                       country="Playland"), 0)
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
-        p = database.query(q)
+        p = tools.query(q)
         i1 = p[0][0]
         self.assertEqual(dummy_player(player_name="Big Mac Sauce",
                                       country="Playland"), 0)
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
-        p = database.query(q)
+        p = tools.query(q)
         i2 = str(p[0][0])
         i1 = str(i1 + 2)
         with self.assertRaises(LookupError):
@@ -308,16 +307,16 @@ class TestNewMatch(BaseTestCase):
     def test_p2_not_valid(self):
         """go_match() throws if player 2 is not valid"""
         q = "TRUNCATE TABLE players;"
-        database.query(q)
+        tools.query(q)
         self.assertEqual(dummy_player(player_name="Fissh Fillay",
                                       country="Playland"), 0)
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
-        p = database.query(q)
+        p = tools.query(q)
         i1 = str(p[0][0])
         self.assertEqual(dummy_player(player_name="Kulv Sangwich",
                                       country="Playland"), 0)
         q = "SELECT * FROM matches ORDER BY id LIMIT 1"
-        p = database.query(q)
+        p = tools.query(q)
         i2 = p[0][0]
         i2 = str(i2 + 2)
         with self.assertRaises(LookupError):
@@ -355,7 +354,7 @@ class TestSwissMatching(BaseTestCase):
     def test_count_players(self):
         """number of players counted equals count(players) in database"""
         q = "SELECT * FROM players;"
-        results = database.query(q)
+        results = tools.query(q)
         count = len(results)
         self.assertEqual(tournament.swiss_match()[1], count)
 
@@ -366,7 +365,7 @@ class TestSwissMatching(BaseTestCase):
     def test_no_players(self):
         """swiss_match() throws if there are no players in the database"""
         q = "TRUNCATE TABLE players;"
-        database.query(q)
+        tools.query(q)
         with self.assertRaises(ValueError):
             tournament.swiss_match()
 
@@ -382,7 +381,7 @@ class TestDeleteMatch(BaseTestCase):
     def test_no_matches_found(self):
         """list_match() throws SystemExit when no matches found"""
         q = "TRUNCATE TABLE matches;"
-        database.query(q)
+        tools.query(q)
         with self.assertRaises(SystemExit):
             tournament.list_matches()
 
@@ -444,6 +443,7 @@ class TestListWinRanking(BaseTestCase):
         truncate('matches')
         with self.assertRaises(SystemExit):
             tournament.list_win_ranking()
+
 
 
 if __name__ == '__main__':

@@ -31,10 +31,4 @@ def query(query):
     return results
 
 
-def bulksql(query):  # use this one for unit testing; it handles bulk SQL better
-    connection = connect()
-    cursor = connection.cursor()
-    cursor.execute(query)
-    connection.commit()
-    cursor.close()
-    connection.close()
+

@@ -8,10 +8,10 @@ TOURNAMENT MATCHUP APPLICATION
 
 import argparse as arg
 import config as cfg
-import database as db
 import datetime
 from decimal import Decimal
 from prettytable import PrettyTable
+import psycopg2
 import random
 import re
 import sys
@@ -36,6 +36,13 @@ def check_version(sys_version):
     return verstat
 
 
+def connect():
+    # Connect to the PostgreSQL database.  Returns a database connection.
+    return psycopg2.connect(database=cfg.DATABASE_NAME,
+                            user=cfg.DATABASE_USERNAME,
+                            password=cfg.DATABASE_PASSWORD)
+
+
 # PLAYER ORIENTED FUNCTIONS #
 
 """
@@ -47,6 +54,8 @@ the following:
 
 
 def new_player(player_name="", country=""):
+    connection = connect()
+    cursor = connection.cursor()
     # check for numbers in player name
     if re.search('[0-9]', player_name):
         raise AttributeError("Player name is invalid (contains numbers)")
@@ -65,13 +74,16 @@ def new_player(player_name="", country=""):
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
-    q = "INSERT INTO players (name, country, code) " \
-        "VALUES (\'%s\', \'%s\', \'%s\');" % (player_name, country, code)
-    db.query(q)
+    cursor.execute("INSERT INTO players (name, country, code) " \
+                   "VALUES (\'%s\', \'%s\', \'%s\');" % (player_name, country, 
+                                                         code))
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Successfully created new entry in %s seconds" % dur[:5]
+    connection.commit()
+    cursor.close()
+    connection.close()
     return 0
 
 
@@ -85,16 +97,15 @@ Delete an existing player based on their ID. We expect the following:
 
 
 def edit_player(option="", player="", new_name="", new_country=""):
+    connection = connect()
+    cursor = connection.cursor()
     if option == "delete":
         start = time.time()
-        q = "SELECT * FROM players WHERE id=%s" % player
-        search = db.query(q)
+        search = cursor.execute("SELECT * FROM players WHERE id=%s" % player)
         # if player ID wasn't found in search
         if not search:
-            raise AttributeError("Invalid Player ID.")
-        q = "DELETE FROM players " \
-            "WHERE id = %s" % player
-        db.query(q)
+            raise AttributeError("Invalid Player ID or ID Not Found.")
+        cursor.execute("DELETE FROM players WHERE id = %s" % player)
         stop = time.time()
     elif option == "edit":
         if not (new_name and new_country):
@@ -102,15 +113,13 @@ def edit_player(option="", player="", new_name="", new_country=""):
         player_name = new_name
         player_country = new_country
         start = time.time()
-        q = "SELECT * FROM players WHERE id=%s" % player
-        search = db.query(q)
+        search = cursor.execute("SELECT * FROM players WHERE id=%s" % player)
         # if player ID wasn't found in search
         if not search:
             raise AttributeError("Invalid Player ID.")
-        q = "UPDATE players " \
-            "SET name=\'%s\', country=\'%s\' " \
-            "WHERE id=%s" % (player_name, player_country, player)
-        db.query(q)
+        cursor.execute("UPDATE players " \
+                       "SET name=\'%s\', country=\'%s\' " \
+                       "WHERE id=%s" % (player_name, player_country, player))
         stop = time.time()
     else:  # if we're not editing nor deleting, error out
         raise AttributeError("OPTION Not Supported: '%s'" % option)
@@ -118,6 +127,9 @@ def edit_player(option="", player="", new_name="", new_country=""):
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
+    connection.commit()
+    cursor.close()
+    connection.close()
     return 0
 
 
@@ -129,9 +141,10 @@ We expect the following:
 
 
 def list_players():
+    connection = connect()
+    cursor = connection.cursor()
     print "List All Players."
-    q = "SELECT * FROM players;"
-    results = db.query(q)
+    results = cursor.execute("SELECT * FROM players;")
     if not results:  # if there aren't any players
         print "No players found."
         status = 1
@@ -144,6 +157,9 @@ def list_players():
         dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                         rounding="ROUND_UP"))
         print "Returned %s results in %s seconds" % (count, dur[:5])
+        connection.commit()
+        cursor.close()
+        connection.close()
         status = 0
     return status
 
@@ -158,6 +174,8 @@ Initiate a match. We expect the following:
 
 
 def go_match(p1="", p2=""):
+    connection = connect()
+    cursor = connection.cursor()
     p1_code = ''
     p2_code = ''
     p1_name = ''
@@ -177,24 +195,22 @@ def go_match(p1="", p2=""):
     # if player 2's ID contains one or more symbols
     if re.search('[!@#$%^&*\(\)~`+=]', str(p2)):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
-    q = "SELECT * FROM players WHERE id=%s" % p1
-    code_lookup = db.query(q)
+    code_lookup = cursor.execute("SELECT * FROM players WHERE id=%s" % p1)
     if not code_lookup:  # if player 1 can't be found
         raise LookupError("Player 1 ID does not exist.")
     for row in code_lookup:
         p1_code = row[3]
-        q = "SELECT * FROM players WHERE code=\'%s\'" % p1_code
-        player_name = db.query(q)
+        player_name = cursor.execute("SELECT * FROM players "
+                                     "WHERE code=\'%s\'" % p1_code)
         for result in player_name:
             p1_name = result[1]
-    q = "SELECT * FROM players WHERE id=%s" % p2
-    code_lookup = db.query(q)
+    code_lookup = cursor.execute("SELECT * FROM players WHERE id=%s" % p2)
     if not code_lookup:  # if player 2 can't be found
         raise LookupError("Player 2 ID does not exist.")
     for row in code_lookup:
         p2_code = row[3]
-        q = "SELECT * FROM players WHERE code=\'%s\'" % p2_code
-        player_name = db.query(q)
+        player_name = cursor.execute("SELECT * FROM players "
+                                     "WHERE code=\'%s\'" % p2_code)
         for result in player_name:
             p2_name = result[1]
     print "%s vs. %s... " % (p1_name, p2_name),
@@ -212,9 +228,13 @@ def go_match(p1="", p2=""):
         print "Player " + p2_name + " wins!"
         winner = p2_code
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
-    q = "INSERT INTO matches (player_1, player_2, winner, timestamp) " \
-        "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2, winner, ts)
-    db.query(q)
+    cursor.execute("INSERT INTO matches (player_1, player_2, "
+                   "winner, timestamp) " \
+                   "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2,
+                                                               winner, ts))
+    connection.commit()
+    cursor.close()
+    connection.close()
     status = 0
     return status
 
@@ -223,12 +243,14 @@ def go_match(p1="", p2=""):
 match up each of the players in the database and swiss-ify them.
 """
 
+
 def swiss_match():
+    connection = connect()
+    cursor = connection.cursor()
     bye = ''
     round_number = 0
     start = time.time()
-    q = "SELECT * FROM players;"
-    players_list = db.query(q)
+    players_list = cursor.execute("SELECT * FROM players;")
     # Count the number of players in the list
     count = len(players_list)
     if count == 0:
@@ -279,6 +301,9 @@ def swiss_match():
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
     print "Swiss matchups complete."
+    connection.commit()
+    cursor.close()
+    connection.close()
     status = 0
     return [status, count, bye]
 
@@ -289,17 +314,21 @@ Delete an existing match. We expect the following:
 """
 
 
-def delete_match(match=""):
+def deleteMatches(match=""):
+    connection = connect()
+    cursor = connection.cursor()
     if not match:
         raise ValueError("An ID # is required.")
     start = time.time()
-    q = "DELETE FROM matches where id=%s" % (match)
-    db.query(q)
+    cursor.execute("DELETE FROM matches where id=%s" % (match))
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
+    connection.commit()
+    cursor.close()
+    connection.close()
     return 0
 
 
@@ -309,13 +338,14 @@ Display all historical matches.
 
 
 def list_matches():
+    connection = connect()
+    cursor = connection.cursor()
     name = ''
     print "List All Matches"
     # display all matches in the matches table, (in groups of ten,
     # with names, eventually).
     start = time.time()
-    q = "SELECT * FROM matches;"
-    results = db.query(q)
+    results = cursor.execute("SELECT * FROM matches;")
     count = len(results)
     if count == 0:
         raise SystemExit("No matches found.")
@@ -325,8 +355,8 @@ def list_matches():
     table.align = 'l'
     for row in results:
         count += 1
-        q = "SELECT * FROM players WHERE code=\'%s\'" % row[3]
-        player = db.query(q)
+        player = cursor.execute("SELECT * FROM players "
+                                "WHERE code=\'%s\'" % row[3])
         for entry in player:
             name = entry[1]
         if name == '':
@@ -337,6 +367,9 @@ def list_matches():
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Returned %s results in %s seconds" % (count, dur[:5])
+    connection.commit()
+    cursor.close()
+    connection.close()
     return 0
 
 """
@@ -345,19 +378,20 @@ Get the latest match's information
 
 
 def latest_match():
+    connection = connect()
+    cursor = connection.cursor()
     print "The Latest Match"
     name = ''
     count = 0
     returned_id = 0
     start = time.time()
-    q = "SELECT * FROM matches ORDER BY id DESC LIMIT 1"
-    results = db.query(q)
+    results = cursor.execute("SELECT * FROM matches ORDER BY id DESC LIMIT 1")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
-        q = "SELECT * FROM players WHERE code=\'%s\'" % row[3]
-        player = db.query(q)
+        player = cursor.execute("SELECT * FROM players "
+                                "WHERE code=\'%s\'" % row[3])
         for entry in player:
             name = entry[1]
         if name == '':
@@ -369,6 +403,9 @@ def latest_match():
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Returned %s results in %s seconds" % (count, dur[:5])
+    connection.commit()
+    cursor.close()
+    connection.close()
     return returned_id
 
 
@@ -379,6 +416,8 @@ Get the latest match's information. We expect the following:
 
 
 def lookup_match(match=""):
+    connection = connect()
+    cursor = connection.cursor()
     if not match:
         raise SystemExit("Missing a match ID.")
     if re.search('[A-Za-z]', str(match)):
@@ -390,16 +429,15 @@ def lookup_match(match=""):
     # assignment" that comes up if we lookup and the player was deleted.
     name = ''
     start = time.time()
-    q = "SELECT * FROM matches WHERE id=%s" % match
-    results = db.query(q)
+    results = cursor.execute("SELECT * FROM matches WHERE id=%s" % match)
     if not results:
         raise SystemExit("No Match Found.")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
-        q = "SELECT * FROM players WHERE code=\'%s\'" % row[3]
-        player = db.query(q)
+        player = cursor.execute("SELECT * FROM players "
+                                "WHERE code=\'%s\'" % row[3])
         for entry in player:
             name = entry[1]
         if name == '':
@@ -410,6 +448,9 @@ def lookup_match(match=""):
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Returned %s results in %s seconds" % (count, dur[:5])
+    connection.commit()
+    cursor.close()
+    connection.close()
     return 0
 
 
@@ -419,24 +460,25 @@ Rank Players by Number of Wins.
 
 
 def list_win_ranking():
+    connection = connect()
+    cursor = connection.cursor()
     print "List Ranking of Players by Wins"
     count = 0
     name = ''
     # get list of players and their IDs
     # for each player, count the number of times they won in every match
     start = time.time()
-    q = "SELECT winner, count(winner) FROM matches GROUP BY winner " \
-        "ORDER BY count DESC " \
-        "LIMIT 5"
-    results = db.query(q)
+    results = cursor.execute("SELECT winner, count(winner) "
+                             "FROM matches GROUP BY winner "
+                             "ORDER BY count DESC  LIMIT 5")
     if not results:
         raise SystemExit("No Matches Found to Rank.")
     table = PrettyTable(['#', 'PLAYER', 'WINS'])
     table.align = 'l'
     for row in results:
         count += 1
-        q = "SELECT * FROM players WHERE code=\'%s\'" % row[0]
-        player = db.query(q)
+        player = cursor.execute("SELECT * FROM players "
+                                "WHERE code=\'%s\'" % row[0])
         if not player:
             name = "[PLAYER DELETED]"
         for p in player:
@@ -447,6 +489,9 @@ def list_win_ranking():
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Returned %s results in %s seconds" % (count, dur[:5])
+    connection.commit()
+    cursor.close()
+    connection.close()
     return 0
 
 
@@ -514,7 +559,7 @@ def argument_parser():
 
     # DELETE MATCH function
     parser.add_argument('--delete-match', '-f',
-                        dest='delete_match',
+                        dest='deleteMatches',
                         action='store',
                         metavar='ID',
                         help='Remove a match from the match system.')
@@ -571,8 +616,8 @@ def main():
     if args.list_players:
         list_players()
 
-    if args.delete_match:
-        delete_match(match=str(args.delete_match))
+    if args.deleteMatches:
+        deleteMatches(match=str(args.deleteMatches))
 
     if args.list_matches:
         list_matches()
