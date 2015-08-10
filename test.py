@@ -27,7 +27,6 @@ def drop():
     cu = co.cursor()
     cu.execute("DROP TABLE IF EXISTS players CASCADE;")
     cu.execute("DROP TABLE IF EXISTS matches CASCADE;")
-    cu.execute("DROP TABLE IF EXISTS auditlog CASCADE;")
     co.commit()
     cu.close()
     co.close()
@@ -59,14 +58,6 @@ def create():
                "CONSTRAINT matches_pkey PRIMARY KEY (id))"
                "WITH (OIDS=FALSE);")
     cu.execute("ALTER TABLE matches OWNER TO postgres;")
-    cu.execute("CREATE TABLE auditlog ("
-               "id serial NOT NULL,"
-               "entry text NOT NULL,"
-               "action text NOT NULL,"
-               "unique_id text NOT NULL,"
-               "\"timestamp\" text NOT NULL,"
-               "CONSTRAINT auditlog_pkey PRIMARY KEY (id)) WITH (OIDS=FALSE);")
-    cu.execute("ALTER TABLE auditlog OWNER TO postgres;")
     co.commit()
     cu.close()
     co.close()
@@ -93,7 +84,7 @@ class TestCreateDatabaseTable(unittest.TestCase):
         self.assertEqual(drop(), 0)
 
     def test_create_database_tables(self):
-        """create database tables 'players', 'matches', 'auditlog'"""
+        """create database tables 'players', 'matches'"""
         self.assertEqual(drop(), 0)
         self.assertEqual(create(), 0)
 
@@ -453,26 +444,6 @@ class TestListWinRanking(BaseTestCase):
         truncate('matches')
         with self.assertRaises(SystemExit):
             tournament.list_win_ranking()
-
-
-class TestAuditLog(BaseTestCase):
-    def setUp(self):
-        create_dummy_data()
-
-    def test_write_log_entry(self):
-        """Can write a log entry to the auditlog table"""
-        tools.logger("Test Log Entry.", "TestAuditLog__test_write_log_entry")
-
-    def test_display_log_entries(self):
-        """display_log() can display log entries"""
-        self.assertEqual(tournament.display_log(), 0)
-
-    def test_no_log_entries(self):
-        """display_log() throws SystemExit when there are no log entries to
-        display"""
-        truncate("auditlog")
-        with self.assertRaises(SystemExit):
-            tournament.display_log()
 
 
 if __name__ == '__main__':

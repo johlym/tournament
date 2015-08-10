@@ -24,6 +24,7 @@ Let's check to make sure the user is running at least Python 2.7. Since
 this app was coded with that version, it would make sense.
 """
 
+
 def check_version(sys_version):
     if sys_version < (2, 7):
         message = "Version out of spec."
@@ -58,11 +59,9 @@ def new_player(player_name="", country=""):
     # player name shouldn't contain symbols
     if re.search('[!@#$%^&*\(\)~`+=]', player_name):
         raise AttributeError("Player name is invalid. (contains symbol(s))")
-    tools.logger("Received player name " + player_name, "new_player()")
     # if a country isn't provided.
     if not country:
         raise SystemExit("Country of Origin Not Provided.")
-    tools.logger("Received player country " + country, "new_player()")
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
@@ -73,9 +72,6 @@ def new_player(player_name="", country=""):
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Successfully created new entry in %s seconds" % dur[:5]
-    tools.logger("Database entry created for " + player_name + " from " +
-                 country + ".",
-                 "new_player()")
     return 0
 
 
@@ -99,7 +95,6 @@ def edit_player(option="", player="", new_name="", new_country=""):
         q = "DELETE FROM players " \
             "WHERE id = %s" % player
         db.query(q)
-        tools.logger("Deleted %s from the database" % player, "edit_player()")
         stop = time.time()
     elif option == "edit":
         if not (new_name and new_country):
@@ -116,7 +111,6 @@ def edit_player(option="", player="", new_name="", new_country=""):
             "SET name=\'%s\', country=\'%s\' " \
             "WHERE id=%s" % (player_name, player_country, player)
         db.query(q)
-        tools.logger("Updated %s." % player, "edit_player()")
         stop = time.time()
     else:  # if we're not editing nor deleting, error out
         raise AttributeError("OPTION Not Supported: '%s'" % option)
@@ -136,7 +130,6 @@ We expect the following:
 
 def list_players():
     print "List All Players."
-    tools.logger("Requesting all players in the database.", "list_players()")
     q = "SELECT * FROM players;"
     results = db.query(q)
     if not results:  # if there aren't any players
@@ -146,13 +139,10 @@ def list_players():
         print "Here's a list of all players in the database: "
         start = time.time()
         count = len(results)
-        print tools.table_gen(['ID', 'Name', 'Country'], results, "l")
         stop = time.time()
 
         dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                         rounding="ROUND_UP"))
-        tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                     "list_players()")
         print "Returned %s results in %s seconds" % (count, dur[:5])
         status = 0
     return status
@@ -187,8 +177,6 @@ def go_match(p1="", p2=""):
     # if player 2's ID contains one or more symbols
     if re.search('[!@#$%^&*\(\)~`+=]', str(p2)):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
-    tools.logger("Starting match between " + p1 + " and " + p2,
-                 "go_match()")
     q = "SELECT * FROM players WHERE id=%s" % p1
     code_lookup = db.query(q)
     if not code_lookup:  # if player 1 can't be found
@@ -214,23 +202,19 @@ def go_match(p1="", p2=""):
         raise ValueError("One of the two players you entered doesn't exist.")
     # Randomly pick between one or two.
     random_int = random.randrange(1, 3)
-    tools.logger("Generated random number " + str(random_int), "go_match()")
     # If the random number is even: player 1 wins. Else: player 2 wins.
     if random_int == 2:
         # the random number is even:
         print p1_name + " wins!"
-        tools.logger("Stated that player 1 wins.", "go_match()")
         winner = p1_code
     else:
         # the random number is odd:
         print "Player " + p2_name + " wins!"
-        tools.logger("Stated that player 2 wins.", "go_match()")
         winner = p2_code
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     q = "INSERT INTO matches (player_1, player_2, winner, timestamp) " \
         "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2, winner, ts)
     db.query(q)
-    tools.logger("Reported win to database.", "go_match()")
     status = 0
     return status
 
@@ -249,13 +233,9 @@ def swiss_match():
     count = len(players_list)
     if count == 0:
         raise ValueError("No players found.")
-    tools.logger("Found %i players in list for swiss matchups." % count,
-                 "swiss_match()")
     # If there isn't an even amount:
     if count % 2:
         print count
-        tools.logger("Popping off the odd player (#%i) out." % count,
-                     "swiss_match()")
         # simple math.
         bye = players_list[count - 1]
         players_list.pop(count - 1)
@@ -280,7 +260,6 @@ def swiss_match():
     ta = tools.table_gen(['ID', 'Name', 'Country'], players_list1, "l")
     tb = tools.table_gen(['ID', 'Name', 'Country'], players_list2, "l")
     tx.add_row([ta, tb])
-    tools.logger("Generated COMPLETE table for display", "swiss_match()")
     print tx
     if bye:
         print "Bye: " + bye[1]
@@ -294,11 +273,7 @@ def swiss_match():
     for a, b in zip(players_list1, players_list2):
         round_number += 1
         print "Round %i: " % round_number,
-        tools.logger("Initiating round %i against go_match()" %
-                     round_number, "swiss_match()")
         go_match(p1=str(a[0]), p2=str(b[0]))
-        tools.logger("Completed round %i against go_match()" %
-                     round_number, "swiss_match()")
         stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
@@ -320,7 +295,6 @@ def delete_match(match=""):
     start = time.time()
     q = "DELETE FROM matches where id=%s" % (match)
     db.query(q)
-    tools.logger("Deleted match %s from the database", "delete_match()")
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -336,7 +310,6 @@ Display all historical matches.
 
 def list_matches():
     name = ''
-    tools.logger("Listing all matches.", "list_matches()")
     print "List All Matches"
     # display all matches in the matches table, (in groups of ten,
     # with names, eventually).
@@ -363,8 +336,6 @@ def list_matches():
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                 "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
     return 0
 
@@ -381,7 +352,6 @@ def latest_match():
     start = time.time()
     q = "SELECT * FROM matches ORDER BY id DESC LIMIT 1"
     results = db.query(q)
-    tools.logger("Retrieved latest result.", "lookup")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
@@ -398,8 +368,6 @@ def latest_match():
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                 "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
     return returned_id
 
@@ -426,7 +394,6 @@ def lookup_match(match=""):
     results = db.query(q)
     if not results:
         raise SystemExit("No Match Found.")
-    tools.logger("Retrieved latest result.", "lookup")
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
@@ -442,8 +409,6 @@ def lookup_match(match=""):
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                 "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
     return 0
 
@@ -451,6 +416,7 @@ def lookup_match(match=""):
 """
 Rank Players by Number of Wins.
 """
+
 
 def list_win_ranking():
     print "List Ranking of Players by Wins"
@@ -480,60 +446,7 @@ def list_win_ranking():
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                 "list_matches")
     print "Returned %s results in %s seconds" % (count, dur[:5])
-    return 0
-
-
-"""
-Any good app keeps a log. We can optionally display all with see_all.
-"""
-
-def display_log(see_all=False):
-    count = 20
-    print "Displaying last 20 entries."
-    start = time.time()
-    q = "SELECT * FROM auditlog ORDER BY id DESC LIMIT %s" % str(count)
-    results = db.query(q)
-    if not results:
-        raise SystemExit("No log entries.")
-    tools.logger("Retrieved results x20.", "display_log()")
-    table = PrettyTable(['#', 'ENTRY', 'ACTION', 'UNIQUE ID', 'TIMESTAMP'])
-    table.align = 'l'
-    for row in results:
-        table.add_row([row[0], row[1], row[2], row[3], row[4]])
-    tools.logger("Created audit log table.", "display_log()")
-    print table
-    stop = time.time()
-    tools.logger("Printed audit log table.", "display_log()")
-    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                    rounding="ROUND_UP"))
-    tools.logger(("Returned %i results in %s seconds" % (count, dur[:5])),
-                 "display_log()")
-    print "Returned %s results in %s seconds" % (count, dur[:5])
-    if see_all:
-        tools.logger("User requested ALL entries.", "display_log()")
-        count = 9999999
-        start = time.time()
-        q = "SELECT * FROM auditlog ORDER BY id DESC LIMIT %s" % str(count)
-        results = db.query(q)
-        tools.logger("Retrieved results x9999999.", "display_log()")
-        table = PrettyTable(['#', 'ENTRY', 'ACTION', 'UNIQUE ID', 'TIMESTAMP'])
-        table.align = 'l'
-        for row in results:
-            table.add_row([row[0], row[1], row[2], row[3], row[4]])
-        tools.logger("Created audit log table.", "display_log()")
-        print table
-        stop = time.time()
-        tools.logger("Printed audit log table.", "display_log()")
-        dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                        rounding="ROUND_UP"))
-        tools.logger(("Returned max %i results in %s seconds" %
-                      (count, dur[:5])), "display_log()")
-        print "Returned %s results in %s seconds" % (count, dur[:5])
-    else:
-        print "Ok."
     return 0
 
 
@@ -627,13 +540,6 @@ def argument_parser():
                         default=False,
                         help='List rankings.')
 
-    # VIEW AUDIT LOG function
-    parser.add_argument('--audit-log', '-a',
-                        dest='audit_log',
-                        action='store_true',
-                        default=False,
-                        help='Display the Audit Logs.')
-
     return parser
 
 
@@ -660,7 +566,7 @@ def main():
         name = "%s %s" % (args.edit_player[1], args.edit_player[2])
         edit_player(option="edit",
                     player=str(args.edit_player[0]),
-                    new_name=name, new_country=args.edit_player[3] )
+                    new_name=name, new_country=args.edit_player[3])
 
     if args.list_players:
         list_players()
@@ -679,9 +585,6 @@ def main():
 
     if args.list_ranking:
         list_win_ranking()
-
-    if args.audit_log:
-        display_log()
 
     # IF NO ARGUMENTS #
 
