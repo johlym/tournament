@@ -17,3 +17,4 @@ before_install:
 - pip install PrettyTable
 script:
 - python test.py
+- python tournament_test.py
