@@ -28,6 +28,12 @@ Run the script on the command line with a 2.7x python interpreter with one of
 
 ## Installation
 
+### Configuration File (config.py)
+
+Give `config.py` a once over to make sure it's correct. Namely, check the 
+database variables found at the beginning. If you change the database name, 
+make sure to change it in `sql/tournament.sql`, too.
+
 ### Pre-requisites
 
 Use `pip` and install:
@@ -83,3 +89,6 @@ performance improvement using the latter.
 
 * Previous versions of this app included audit logging. It was more for my 
 usage than anything else. Since we're past that point, I pulled it.
+
+* If you'd like to test the app with data pre-installed, check out the two 
+dump files `matches.dump.sql` and `players.dump.sql`. 
