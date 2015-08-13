@@ -63,20 +63,12 @@ prompted for an `ID`.
 
 `--list-players`: List all players in the database.
 
-`--list-ranking`: List all players in the database, sorted by number of wins.
-
 #### Match
 
-`--new-match`: Create a new match. You'll be prompted for `ID`s of two players.
+`--new-match`: Create a new match. Provide the IDs of two players.
 
 `--swiss-match`: Activates the swiss-style matchup function. This is an 
 automated behavior.
-
-#### Data
-
-`--latest-match`: Prints out the results of the latest executed match.
-
-`--lookup-match`: Allows the user to lookup a match by `ID`.
 
 ## Noteworthy
 
