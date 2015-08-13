@@ -42,9 +42,6 @@ CREATE SEQUENCE matches_id_seq
     NO MAXVALUE
     CACHE 1;
 
-
-ALTER TABLE matches_id_seq OWNER TO postgres;
-
 --
 -- Name: matches_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
 --
@@ -318,9 +315,6 @@ CREATE SEQUENCE players_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE players_id_seq OWNER TO postgres;
 
 --
 -- Name: players_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
