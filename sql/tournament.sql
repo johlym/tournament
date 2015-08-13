@@ -31,7 +31,6 @@ CREATE TABLE matches
   id serial NOT NULL,
   player_1 text NOT NULL,
   player_2 text NOT NULL,
-  winner text NOT NULL,
   "timestamp" text NOT NULL,
   CONSTRAINT matches_pkey PRIMARY KEY (id)
 )
