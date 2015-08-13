@@ -235,7 +235,7 @@ def reportMatch(p1="", p2=""):
     for row in code_lookup:
         p1_code = row[3]
         cursor.execute("SELECT * FROM players "
-                                     "WHERE code=\'%s\'", (p1_code,))
+                                     "WHERE code=%s", (p1_code,))
         player_name = cursor.fetchall()
         for result in player_name:
             p1_name = result[1]
@@ -247,7 +247,7 @@ def reportMatch(p1="", p2=""):
     for row in code_lookup:
         p2_code = row[3]
         cursor.execute("SELECT * FROM players "
-                                     "WHERE code=\'%s\'", (p2_code,))
+                                     "WHERE code=%s", (p2_code,))
         cursor.execute("SELECT * FROM players WHERE id=%s", (p2,))
         player_name = cursor.fetchall()
         for result in player_name:
@@ -264,7 +264,7 @@ def reportMatch(p1="", p2=""):
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     cursor.execute("INSERT INTO matches (player_1, player_2, "
                    "timestamp) "
-                   "VALUES (\'%s\', \'%s\', \'%s\');", (winner, loser, ts))
+                   "VALUES (%s, %s, %s);", (winner, loser, ts))
     connection.commit()
     cursor.close()
     connection.close()
@@ -397,7 +397,7 @@ def latest_match():
         count += 1
         # Generate the rows for the table
         cursor.execute("SELECT * FROM players "
-                       "WHERE code=\'%s\'", (row[3],))
+                       "WHERE code=%s", (row[3],))
         player = cursor.fetchall()
         for entry in player:
             name = entry[1]
@@ -436,14 +436,14 @@ def playerStandings():
         # player_1 column inside tournament.matches).
         cursor.execute("SELECT count(*) "
                        "FROM matches "
-                       "WHERE player_1='%s'", (player[3],))
+                       "WHERE player_1=%s", (player[3],))
         wins_blob = cursor.fetchall()
         wins_num = wins_blob[0][0]
         # Count the number of times the player has lost (they are present in
         # player_2 column inside tournament.matches).
         cursor.execute("SELECT count(*) "
                        "FROM matches "
-                       "WHERE player_2='%s'", (player[3],))
+                       "WHERE player_2=%s", (player[3],))
         losses_blob = cursor.fetchall()
         matches_num = losses_blob[0][0] + wins_num
         table.add_row([player[0], player[1], wins_num, matches_num])
