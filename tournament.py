@@ -52,6 +52,8 @@ def registerPlayer(player_name="", country=""):
     """
     connection = connect()
     cursor = connection.cursor()
+    # We perform some regex actions to check the input. Odd inputs can cause
+    # problems, so it's best to catch them now.
     # check for numbers in player name
     if re.search('[0-9]', player_name):
         raise AttributeError("Player name is invalid (contains numbers)")
@@ -144,6 +146,7 @@ def editPlayer(player="", new_name="", new_country=""):
     player_name = new_name
     player_country = new_country
     start = time.time()
+    # look up the player based on the ID provided.
     cursor.execute("SELECT * FROM players WHERE id=%s", (player,))
     search = cursor.fetchall()
     # if player ID wasn't found in search, raise an exception.
@@ -162,7 +165,7 @@ def editPlayer(player="", new_name="", new_country=""):
     return 0
 
 
-def list_players():
+def listPlayers():
     """
     Get a list of players based on criteria and display method.
     We expect the following:
@@ -208,6 +211,9 @@ def reportMatch(p1="", p2=""):
     """
     connection = connect()
     cursor = connection.cursor()
+    # Because we use these in if statements, to make sure we're as pythonic
+    # as possible, we need to explicity generate them, first. It's bad python
+    # to assume they'll be generated in the logic below.
     p1_code = ''
     p2_code = ''
     p1_name = ''
@@ -215,6 +221,8 @@ def reportMatch(p1="", p2=""):
     # if both players aren't provided
     if not (p1 and p2):
         raise AttributeError("Both player IDs need to be provided.")
+    # We perform some regex actions to check the input. Odd inputs can cause
+    # problems, so it's best to catch them now.
     # if player 1's ID contains one or more letters
     if re.search('[A-Za-z]', str(p1)):
         raise AttributeError("Player 1 ID contains letter(s).")
@@ -278,10 +286,14 @@ def swissPairings():
     """
     connection = connect()
     cursor = connection.cursor()
+    # Because we use these in if statements, to make sure we're as pythonic
+    # as possible, we need to explicity generate them, first. It's bad python
+    # to assume they'll be generated in the logic below.
     bye = ''
     player_pairs = []
     round_number = 0
     start = time.time()
+    # get the player list
     cursor.execute("SELECT * FROM players;")
     players_list = cursor.fetchall()
     # Count the number of players in the list
@@ -292,15 +304,16 @@ def swissPairings():
     if count % 2:
         print count
         # simple math.
+        # Since we need an even number of players, someone gets popped off.
+        # Sorry, someone!
         bye = players_list[count - 1]
         players_list.pop(random.randrange(0,count))
         print len(players_list)
-    """ Since it's technically pure coincidence that the entries were in order,
-    we need to explicitly sort them. Defaults to the ID for sorting as it's
-    the first non-symbol in each entry.
-    If we did the list organization in the database, it would require extra
-    cycles in the code to get the data right. """
-
+    # Since it's technically pure coincidence that the entries were in order,
+    # we need to explicitly sort them. Defaults to the ID for sorting as it's
+    # the first non-symbol in each entry.
+    # If we did the list organization in the database, it would require extra
+    # cycles in the code to get the data right.
     players_list1 = players_list[:len(players_list)/2]
     players_list2 = players_list[len(players_list)/2:]
     # Flip the second dict; faster than using the reversed() builtin.
@@ -311,10 +324,14 @@ def swissPairings():
     tx.vrules = False
     tx.left_padding_width = 0
     tx.right_padding_width = 0
+    # We have a special function to generate a table for our tables.
+    # YO DAWG, I HEARD YOU LIKE TABLES... SO I PUT A TABLE IN YOUR TABLE.
     ta = tools.table_gen(['ID', 'Name', 'Country'], players_list1, "l")
     tb = tools.table_gen(['ID', 'Name', 'Country'], players_list2, "l")
     tx.add_row([ta, tb])
     print tx
+    # Here's that special someone that got popped off earlier. We at least
+    # acknowledge they're important, sort of.
     if bye:
         print "Bye: " + bye[1]
     # smoosh (technical term) the two lists together and make them fight
@@ -322,6 +339,7 @@ def swissPairings():
     for a, b in zip(players_list1, players_list2):
         round_number += 1
         print "Round %i: " % round_number,
+        # create a match for the two players matched up in each iteration
         reportMatch(p1=str(a[0]), p2=str(b[0]))
         player_pairs.append([a[0], a[1], b[0], b[1]])
     stop = time.time()
@@ -421,6 +439,9 @@ def playerStandings():
     Rank players by the number of wins. Get the list of wins and total
     matches for each player.
     """
+    # Because we use these in if statements, to make sure we're as pythonic
+    # as possible, we need to explicity generate them, first. It's bad python
+    # to assume they'll be generated in the logic below.
     count = 0
     returned_blob = []
     connection = connect()
@@ -532,7 +553,7 @@ def argument_parser():
 
     # LIST PLAYERS function
     parser.add_argument('--list-players', '-p',
-                        dest='list_players',
+                        dest='listPlayers',
                         action='store_true',
                         default=False,
                         help='List all players.')
@@ -549,6 +570,10 @@ def argument_parser():
 
 # ROUTING LOGIC #
 def main():
+    """
+    We'll use this function to call up all our other functions, based on the
+    action parameter provided on the command line.
+    """
     parser = argument_parser()
     args = parser.parse_args()
     if args.registerPlayer:
@@ -571,7 +596,7 @@ def main():
                     new_name=name, new_country=args.editPlayer[3])
 
     if args.list_players:
-        list_players()
+        listPlayers()
 
     if args.deleteMatch:
         deleteMatch(match=str(args.deleteMatch))

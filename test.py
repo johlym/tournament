@@ -239,15 +239,15 @@ class TestListPlayers(BaseTestCase):
         create_dummy_data()
 
     def test_display_zero_matches(self):
-        """list_players() returns 1 if the tournament.Players table is empty"""
+        """listPlayers() returns 1 if the tournament.Players table is empty"""
         q = "TRUNCATE TABLE players;"
         tools.query(q)
-        self.assertEqual(tournament.list_players(), 1)
+        self.assertEqual(tournament.listPlayers(), 1)
 
     def test_list_players(self):
-        """list_players() returns 0 if it works."""
+        """listPlayers() returns 0 if it works."""
         dummy_player(player_name="Mark German", country="Germany")
-        self.assertEqual(tournament.list_players(), 0)
+        self.assertEqual(tournament.listPlayers(), 0)
 
 
 class TestNewMatch(BaseTestCase):
