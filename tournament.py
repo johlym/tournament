@@ -99,12 +99,12 @@ def deletePlayer(player=""):
     connection = connect()
     cursor = connection.cursor()
     start = time.time()
-    cursor.execute("SELECT * FROM players WHERE id=%s" % player)
+    cursor.execute("SELECT * FROM players WHERE id=%s", player)
     search = cursor.fetchall()
     # if player ID wasn't found in search, raise an exception.
     if not search:
         raise LookupError("Invalid Player ID or ID Not Found.")
-    cursor.execute("DELETE FROM players WHERE id = %s" % player)
+    cursor.execute("DELETE FROM players WHERE id = %s", player)
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
@@ -143,14 +143,14 @@ def editPlayer(player="", new_name="", new_country=""):
     player_name = new_name
     player_country = new_country
     start = time.time()
-    cursor.execute("SELECT * FROM players WHERE id=%s" % player)
+    cursor.execute("SELECT * FROM players WHERE id=%s", player)
     search = cursor.fetchall()
     # if player ID wasn't found in search, raise an exception.
     if not search:
         raise LookupError("Invalid Player ID.")
     cursor.execute("UPDATE players "
                    "SET name=\'%s\', country=\'%s\' "
-                   "WHERE id=%s" % (player_name, player_country, player))
+                   "WHERE id=%s", (player_name, player_country, player))
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
@@ -226,7 +226,7 @@ def reportMatch(p1="", p2=""):
     # if player 2's ID contains one or more symbols
     if re.search('[!@#$%^&*\(\)~`+=]', str(p2)):
         raise AttributeError("Player 2 ID is invalid. (contains symbol(s))")
-    cursor.execute("SELECT * FROM players WHERE id=%s" % p1)
+    cursor.execute("SELECT * FROM players WHERE id=%s", p1)
     code_lookup = cursor.fetchall()
     if not code_lookup:  # if player 1 can't be found
         raise LookupError("Player 1 ID does not exist.")
@@ -234,11 +234,11 @@ def reportMatch(p1="", p2=""):
     for row in code_lookup:
         p1_code = row[3]
         cursor.execute("SELECT * FROM players "
-                                     "WHERE code=\'%s\'" % p1_code)
+                                     "WHERE code=\'%s\'", p1_code)
         player_name = cursor.fetchall()
         for result in player_name:
             p1_name = result[1]
-    cursor.execute("SELECT * FROM players WHERE id=%s" % p2)
+    cursor.execute("SELECT * FROM players WHERE id=%s", p2)
     code_lookup = cursor.fetchall()
     if not code_lookup:  # if player 2 can't be found
         raise LookupError("Player 2 ID does not exist.")
@@ -246,8 +246,8 @@ def reportMatch(p1="", p2=""):
     for row in code_lookup:
         p2_code = row[3]
         cursor.execute("SELECT * FROM players "
-                                     "WHERE code=\'%s\'" % p2_code)
-        cursor.execute("SELECT * FROM players WHERE id=%s" % p2)
+                                     "WHERE code=\'%s\'", p2_code)
+        cursor.execute("SELECT * FROM players WHERE id=%s", p2)
         player_name = cursor.fetchall()
         for result in player_name:
             p2_name = result[1]
@@ -263,7 +263,7 @@ def reportMatch(p1="", p2=""):
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     cursor.execute("INSERT INTO matches (player_1, player_2, "
                    "timestamp) "
-                   "VALUES (\'%s\', \'%s\', \'%s\');" % (winner, loser, ts))
+                   "VALUES (\'%s\', \'%s\', \'%s\');", (winner, loser, ts))
     connection.commit()
     cursor.close()
     connection.close()
@@ -345,7 +345,7 @@ def deleteMatch(match=""):
     if not match:
         raise ValueError("An ID # is required.")
     start = time.time()
-    cursor.execute("DELETE FROM matches where id=%s" % match)
+    cursor.execute("DELETE FROM matches where id=%s", match)
     stop = time.time()
 
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -396,7 +396,7 @@ def latest_match():
         count += 1
         # Generate the rows for the table
         cursor.execute("SELECT * FROM players "
-                       "WHERE code=\'%s\'" % row[3])
+                       "WHERE code=\'%s\'", row[3])
         player = cursor.fetchall()
         for entry in player:
             name = entry[1]
@@ -435,14 +435,14 @@ def playerStandings():
         # player_1 column inside tournament.matches).
         cursor.execute("SELECT count(*) "
                        "FROM matches "
-                       "WHERE player_1='%s'" % player[3])
+                       "WHERE player_1='%s'", player[3])
         wins_blob = cursor.fetchall()
         wins_num = wins_blob[0][0]
         # Count the number of times the player has lost (they are present in
         # player_2 column inside tournament.matches).
         cursor.execute("SELECT count(*) "
                        "FROM matches "
-                       "WHERE player_2='%s'" % player[3])
+                       "WHERE player_2='%s'", player[3])
         losses_blob = cursor.fetchall()
         matches_num = losses_blob[0][0] + wins_num
         table.add_row([player[0], player[1], wins_num, matches_num])
