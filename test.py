@@ -224,12 +224,12 @@ class TestEditPlayer(BaseTestCase):
 
     def test_delete_invalid_player_id(self):
         """editPlayer() should throw if the player ID is invalid"""
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(LookupError):
             tournament.deletePlayer(player="38471237401238")
 
     def test_edit_invalid_player_id(self):
         """editPlayer() should throw if the player ID is invalid"""
-        with self.assertRaises(AttributeError):
+        with self.assertRaises(LookupError):
             tournament.editPlayer(player="38471237401238",
                                    new_name="Michael Bay", new_country="Japan")
 
