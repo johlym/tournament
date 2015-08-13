@@ -24,10 +24,12 @@ def check_version(sys_version):
     Let's check to make sure the user is running at least Python 2.7. Since
     this app was coded with that version, it would make sense.
     """
+    # Check if python version is less than 2.7
     if sys_version < (2, 7):
+        # if so, let the user know.
         message = "Version out of spec."
         print message
-        time.sleep(3.0)  # long enough, I think.
+        time.sleep(3.0)  # Wait before proceeding through the app.
         verstat = 1
     else:
         verstat = 0
@@ -39,9 +41,6 @@ def connect():
     return psycopg2.connect(database=cfg.DATABASE_NAME,
                             user=cfg.DATABASE_USERNAME,
                             password=cfg.DATABASE_PASSWORD)
-
-
-# PLAYER ORIENTED FUNCTIONS #
 
 
 def registerPlayer(player_name="", country=""):
@@ -78,6 +77,8 @@ def registerPlayer(player_name="", country=""):
                    "VALUES (%s, %s, %s);", (player_name, country,
                                                          code))
     stop = time.time()
+    # Using the start and stop time values above, we can print out how long
+    # it took to complete this action.
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Successfully created new entry in %s seconds" % dur[:5]
@@ -100,9 +101,9 @@ def deletePlayer(player=""):
     start = time.time()
     cursor.execute("SELECT * FROM players WHERE id=%s" % player)
     search = cursor.fetchall()
-    # if player ID wasn't found in search
+    # if player ID wasn't found in search, raise an exception.
     if not search:
-        raise AttributeError("Invalid Player ID or ID Not Found.")
+        raise LookupError("Invalid Player ID or ID Not Found.")
     cursor.execute("DELETE FROM players WHERE id = %s" % player)
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -119,6 +120,7 @@ def deletePlayers():
     connection = connect()
     cursor = connection.cursor()
     start = time.time()
+    # empty the players table
     cursor.execute("TRUNCATE players;")
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -135,16 +137,17 @@ def editPlayer(player="", new_name="", new_country=""):
     and using 'new_name' and 'new_country'."""
     connection = connect()
     cursor = connection.cursor()
+    # if both a name and country aren't provided, raise an exception.
     if not (new_name and new_country):
-        raise AttributeError("EDIT chosen, but new info not given.")
+        raise AttributeError("New Information Not Provided.")
     player_name = new_name
     player_country = new_country
     start = time.time()
     cursor.execute("SELECT * FROM players WHERE id=%s" % player)
     search = cursor.fetchall()
-    # if player ID wasn't found in search
+    # if player ID wasn't found in search, raise an exception.
     if not search:
-        raise AttributeError("Invalid Player ID.")
+        raise LookupError("Invalid Player ID.")
     cursor.execute("UPDATE players "
                    "SET name=\'%s\', country=\'%s\' "
                    "WHERE id=%s" % (player_name, player_country, player))
@@ -176,11 +179,14 @@ def list_players():
     else:
         print "Here's a list of all players in the database: "
         start = time.time()
+        # Start building the output table.
         table = PrettyTable(['ID', 'NAME', 'COUNTRY'])
-        table.align = 'l'
+        table.align = 'l' # left-align the table contents.
+        # Loop through the data and generate a table row for each iteration.
         for row in results:
             count += 1
             table.add_row([row[0], row[1], row[2]])
+        # Finally, print the table.
         print table
         stop = time.time()
         dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -224,6 +230,7 @@ def reportMatch(p1="", p2=""):
     code_lookup = cursor.fetchall()
     if not code_lookup:  # if player 1 can't be found
         raise LookupError("Player 1 ID does not exist.")
+    # Correlate a player's unique code to their name
     for row in code_lookup:
         p1_code = row[3]
         cursor.execute("SELECT * FROM players "
@@ -235,6 +242,7 @@ def reportMatch(p1="", p2=""):
     code_lookup = cursor.fetchall()
     if not code_lookup:  # if player 2 can't be found
         raise LookupError("Player 2 ID does not exist.")
+    # and again for player 2
     for row in code_lookup:
         p2_code = row[3]
         cursor.execute("SELECT * FROM players "
@@ -246,6 +254,9 @@ def reportMatch(p1="", p2=""):
     print "%s vs. %s... " % (p1_name, p2_name),
     if (not p1_name) or (not p2_name):
         raise ValueError("One of the two players you entered doesn't exist.")
+    # In this world, the first player always wins. One could call this
+    # function and randomly choose who's is first position in order to make
+    # it fair.
     winner = p1_code
     loser = p2_code
     print "Winner: %s" % p1_name
@@ -378,10 +389,12 @@ def latest_match():
     start = time.time()
     cursor.execute("SELECT * FROM matches ORDER BY id DESC LIMIT 1")
     results = cursor.fetchall()
+    # Generate the table
     table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
     table.align = 'l'
     for row in results:
         count += 1
+        # Generate the rows for the table
         cursor.execute("SELECT * FROM players "
                        "WHERE code=\'%s\'" % row[3])
         player = cursor.fetchall()
