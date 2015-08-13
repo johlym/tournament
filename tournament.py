@@ -19,13 +19,11 @@ import time
 import tools
 
 
-"""
-Let's check to make sure the user is running at least Python 2.7. Since
-this app was coded with that version, it would make sense.
-"""
-
-
 def check_version(sys_version):
+    """
+    Let's check to make sure the user is running at least Python 2.7. Since
+    this app was coded with that version, it would make sense.
+    """
     if sys_version < (2, 7):
         message = "Version out of spec."
         print message
@@ -45,15 +43,14 @@ def connect():
 
 # PLAYER ORIENTED FUNCTIONS #
 
-"""
-Create a new player based on their name and country of origin. We expect
-the following:
-- Player Name
-- Player Country of Origin
-"""
 
-
-def new_player(player_name="", country=""):
+def registerPlayer(player_name="", country=""):
+    """
+    Create a new player based on their name and country of origin. We expect
+    the following:
+    - Player Name
+    - Player Country of Origin
+    """
     connection = connect()
     cursor = connection.cursor()
     # check for numbers in player name
@@ -74,8 +71,11 @@ def new_player(player_name="", country=""):
     print "Creating new entry for %s from %s" % (player_name, country)
     code = player_name[:4].lower() + str(random.randrange(1000001, 9999999))
     start = time.time()
+    # Unlike other queries in this app, we don't use the % symbol,
+    # which allows psycopg2 to auto-escape any crazy single-quote-containing
+    # names. This way, one can add all the O'Malleys and O'Neals they desire!
     cursor.execute("INSERT INTO players (name, country, code) "
-                   "VALUES (\'%s\', \'%s\', \'%s\');" % (player_name, country, 
+                   "VALUES (%s, %s, %s);", (player_name, country,
                                                          code))
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
@@ -87,16 +87,14 @@ def new_player(player_name="", country=""):
     return 0
 
 
-"""
-Delete an existing player based on their ID. We expect the following:
-- Option (edit or delete)
-- Player ID
-- New Player Name (if edit)
-- New Country of Origin (if edit)
-"""
-
-
-def deletePlayers(player=""):
+def deletePlayer(player=""):
+    """
+    Delete an existing player based on their ID. We expect the following:
+    - Option (edit or delete)
+    - Player ID
+    - New Player Name (if edit)
+    - New Country of Origin (if edit)
+    """
     connection = connect()
     cursor = connection.cursor()
     start = time.time()
@@ -116,7 +114,25 @@ def deletePlayers(player=""):
     return 0
 
 
-def editPlayers(player="", new_name="", new_country=""):
+def deletePlayers():
+    """Deletes ALL players from the database."""
+    connection = connect()
+    cursor = connection.cursor()
+    start = time.time()
+    cursor.execute("TRUNCATE players;")
+    stop = time.time()
+    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
+                                                    rounding="ROUND_UP"))
+    print "Complete. Operation took %s seconds." % dur[:5]
+    connection.commit()
+    cursor.close()
+    connection.close()
+    return 0
+
+
+def editPlayer(player="", new_name="", new_country=""):
+    """Edit a player in the database, based on 'player',
+    and using 'new_name' and 'new_country'."""
     connection = connect()
     cursor = connection.cursor()
     if not (new_name and new_country):
@@ -142,14 +158,12 @@ def editPlayers(player="", new_name="", new_country=""):
     return 0
 
 
-"""
-Get a list of players based on criteria and display method.
-We expect the following:
-- Limit to display
-"""
-
-
 def list_players():
+    """
+    Get a list of players based on criteria and display method.
+    We expect the following:
+    - Limit to display
+    """
     connection = connect()
     cursor = connection.cursor()
     print "List All Players."
@@ -179,16 +193,12 @@ def list_players():
     return status
 
 
-# MATCH ORIENTED FUNCTIONS #
-
-"""
-Initiate a match. We expect the following:
-- ID of Player 1
-- ID of Player 2
-"""
-
-
-def go_match(p1="", p2=""):
+def reportMatch(p1="", p2=""):
+    """
+    Initiate a match. We expect the following:
+    - ID of Player 1
+    - ID of Player 2
+    """
     connection = connect()
     cursor = connection.cursor()
     p1_code = ''
@@ -236,22 +246,13 @@ def go_match(p1="", p2=""):
     print "%s vs. %s... " % (p1_name, p2_name),
     if (not p1_name) or (not p2_name):
         raise ValueError("One of the two players you entered doesn't exist.")
-    # Randomly pick between one or two.
-    random_int = random.randrange(1, 3)
-    # If the random number is even: player 1 wins. Else: player 2 wins.
-    if random_int == 2:
-        # the random number is even:
-        print p1_name + " wins!"
-        winner = p1_code
-    else:
-        # the random number is odd:
-        print "Player " + p2_name + " wins!"
-        winner = p2_code
+    winner = p1_code
+    loser = p2_code
+    print "Winner: %s" % p1_name
     ts = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]
     cursor.execute("INSERT INTO matches (player_1, player_2, "
-                   "winner, timestamp) "
-                   "VALUES (\'%s\', \'%s\', \'%s\', \'%s\');" % (p1, p2,
-                                                                 winner, ts))
+                   "timestamp) "
+                   "VALUES (\'%s\', \'%s\', \'%s\');" % (winner, loser, ts))
     connection.commit()
     cursor.close()
     connection.close()
@@ -259,15 +260,14 @@ def go_match(p1="", p2=""):
     return status
 
 
-"""
-match up each of the players in the database and swiss-ify them.
-"""
-
-
-def swiss_match():
+def swissPairings():
+    """
+    match up each of the players in the database and swiss-ify them.
+    """
     connection = connect()
     cursor = connection.cursor()
     bye = ''
+    player_pairs = []
     round_number = 0
     start = time.time()
     cursor.execute("SELECT * FROM players;")
@@ -281,18 +281,17 @@ def swiss_match():
         print count
         # simple math.
         bye = players_list[count - 1]
-        players_list.pop(count - 1)
+        players_list.pop(random.randrange(0,count))
         print len(players_list)
     """ Since it's technically pure coincidence that the entries were in order,
     we need to explicitly sort them. Defaults to the ID for sorting as it's
     the first non-symbol in each entry.
     If we did the list organization in the database, it would require extra
     cycles in the code to get the data right. """
-    players_list = sorted(players_list)
+
     players_list1 = players_list[:len(players_list)/2]
     players_list2 = players_list[len(players_list)/2:]
     # Flip the second dict; faster than using the reversed() builtin.
-    players_list2 = sorted(players_list2, reverse=True)
     tx = PrettyTable(["TEAM A", "TEAM B"])
     # some master table settings we need to declare for formatting purposes
     tx.align = "c"
@@ -306,18 +305,14 @@ def swiss_match():
     print tx
     if bye:
         print "Bye: " + bye[1]
-    stop = time.time()
-    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                    rounding="ROUND_UP"))
-    print "Complete. Operation took %s seconds." % dur[:5]
     # smoosh (technical term) the two lists together and make them fight
     # for their dinner!
-    start = time.time()
     for a, b in zip(players_list1, players_list2):
         round_number += 1
         print "Round %i: " % round_number,
-        go_match(p1=str(a[0]), p2=str(b[0]))
-        stop = time.time()
+        reportMatch(p1=str(a[0]), p2=str(b[0]))
+        player_pairs.append([a[0], a[1], b[0], b[1]])
+    stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Complete. Operation took %s seconds." % dur[:5]
@@ -326,16 +321,14 @@ def swiss_match():
     cursor.close()
     connection.close()
     status = 0
-    return [status, count, bye]
+    return player_pairs
 
 
-"""
-Delete an existing match. We expect the following:
-- Match ID
-"""
-
-
-def deleteMatches(match=""):
+def deleteMatch(match=""):
+    """
+    Delete an existing match. We expect the following:
+    - Match ID
+    """
     connection = connect()
     cursor = connection.cursor()
     if not match:
@@ -353,54 +346,29 @@ def deleteMatches(match=""):
     return 0
 
 
-"""
-Display all historical matches.
-"""
-
-
-def list_matches():
+def deleteMatches():
+    """
+    Delete ALL matches from the database.
+    """
     connection = connect()
     cursor = connection.cursor()
-    name = ''
-    print "List All Matches"
-    # display all matches in the matches table, (in groups of ten,
-    # with names, eventually).
     start = time.time()
-    cursor.execute("SELECT * FROM matches;")
-    results = cursor.fetchall()
-    count = len(results)
-    if count == 0:
-        raise SystemExit("No matches found.")
-    # print tools.table_gen(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'],
-    #                      results, "l")
-    table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
-    table.align = 'l'
-    for row in results:
-        count += 1
-        cursor.execute("SELECT * FROM players "
-                       "WHERE code=\'%s\'" % row[3])
-        player = cursor.fetchall()
-        for entry in player:
-            name = entry[1]
-        if name == '':
-            name = "[PLAYER DELETED]"
-        table.add_row([count, row[0], row[1], row[2], name, row[4]])
-    print table
+    cursor.execute("TRUNCATE matches;")
     stop = time.time()
+
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
-    print "Returned %s results in %s seconds" % (count, dur[:5])
+    print "Complete. Operation took %s seconds." % dur[:5]
     connection.commit()
     cursor.close()
     connection.close()
     return 0
 
-"""
-Get the latest match's information
-"""
-
 
 def latest_match():
+    """
+    Get the latest match's information
+    """
     connection = connect()
     cursor = connection.cursor()
     print "The Latest Match"
@@ -434,109 +402,71 @@ def latest_match():
     return returned_id
 
 
-"""
-Get the latest match's information. We expect the following:
-- Match ID
-"""
-
-
-def lookup_match(match=""):
+def playerStandings():
+    """
+    Rank players by the number of wins. Get the list of wins and total
+    matches for each player.
+    """
+    count = 0
+    returned_blob = []
     connection = connect()
     cursor = connection.cursor()
-    if not match:
-        raise SystemExit("Missing a match ID.")
-    if re.search('[A-Za-z]', str(match)):
-        raise AttributeError("Match ID contains letter(s)")
-    if re.search('[!@#$%^&*\(\)~`+=]', str(match)):
-        raise AttributeError("Match ID contains symbol(s)")
-    count = 0
-    # defining 'name' here prevents "UnboundLocalError: referenced before
-    # assignment" that comes up if we lookup and the player was deleted.
-    name = ''
     start = time.time()
-    cursor.execute("SELECT * FROM matches WHERE id=%s" % match)
-    results = cursor.fetchall()
-    if not results:
-        raise SystemExit("No Match Found.")
-    table = PrettyTable(['#', 'ID#', 'P1 ID', 'P2 ID', 'WINNER', 'TIME'])
-    table.align = 'l'
-    for row in results:
+    cursor.execute("SELECT * from players;")
+    player_blob = cursor.fetchall()
+    table = PrettyTable(["ID", "PLAYER", "WINS", "MATCHES"])
+    table.align = "l"
+    for player in player_blob:
         count += 1
-        cursor.execute("SELECT * FROM players "
-                                "WHERE code=\'%s\'" % row[3])
-        player = cursor.fetchall()
-        for entry in player:
-            name = entry[1]
-        if name == '':
-            name = "[PLAYER DELETED]"
-        table.add_row([count, row[0], row[1], row[2], name, row[4]])
+        # Count the number of times the player has won (they are present in
+        # player_1 column inside tournament.matches).
+        cursor.execute("SELECT count(*) "
+                       "FROM matches "
+                       "WHERE player_1='%s'" % player[3])
+        wins_blob = cursor.fetchall()
+        wins_num = wins_blob[0][0]
+        # Count the number of times the player has lost (they are present in
+        # player_2 column inside tournament.matches).
+        cursor.execute("SELECT count(*) "
+                       "FROM matches "
+                       "WHERE player_2='%s'" % player[3])
+        losses_blob = cursor.fetchall()
+        matches_num = losses_blob[0][0] + wins_num
+        table.add_row([player[0], player[1], wins_num, matches_num])
+        returned_blob.append([player[0], player[1], wins_num, matches_num])
     print table
     stop = time.time()
     dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
                                                     rounding="ROUND_UP"))
     print "Returned %s results in %s seconds" % (count, dur[:5])
-    connection.commit()
-    cursor.close()
-    connection.close()
-    return 0
+    return returned_blob
 
 
-"""
-Rank Players by Number of Wins.
-"""
-
-
-def list_win_ranking():
+def countPlayers():
+    """A function needed to fulfill the requirements of Udacity's
+    tournament_test.py. This function gets used to count the number of
+    players in the Players table."""
     connection = connect()
     cursor = connection.cursor()
-    print "List Ranking of Players by Wins"
-    count = 0
-    name = ''
-    # get list of players and their IDs
-    # for each player, count the number of times they won in every match
-    start = time.time()
-    cursor.execute("SELECT winner, count(winner) "
-                             "FROM matches GROUP BY winner "
-                             "ORDER BY count DESC  LIMIT 5")
-    results = cursor.fetchall()
-    if not results:
-        raise SystemExit("No Matches Found to Rank.")
-    table = PrettyTable(['#', 'PLAYER', 'WINS'])
-    table.align = 'l'
-    for row in results:
-        count += 1
-        cursor.execute("SELECT * FROM players "
-                                "WHERE code=\'%s\'" % row[0])
-        player = cursor.fetchall()
-        if not player:
-            name = "[PLAYER DELETED]"
-        for p in player:
-            name = p[1]
-        table.add_row([count, name, row[1]])
-    print table
-    stop = time.time()
-    dur = str(Decimal(float(stop - start)).quantize(Decimal('.01'),
-                                                    rounding="ROUND_UP"))
-    print "Returned %s results in %s seconds" % (count, dur[:5])
+    cursor.execute("SELECT COUNT(id) FROM players;")
+    result = cursor.fetchall()
     connection.commit()
     cursor.close()
     connection.close()
-    return 0
-
-
-"""
-Using command-line arguments to control actions. User can use flags to run
-certain, pre-defined scenarios. This will also allow for reuse of code where
-applicable.
-"""
+    return result[0][0]
 
 
 def argument_parser():
+    """
+    Using command-line arguments to control actions. User can use flags to run
+    certain, pre-defined scenarios. This will also allow for reuse of code where
+    applicable.
+    """
     parser = arg.ArgumentParser(description=cfg.APP_DESCRIPTION)
 
     # NEW PLAYER function
     parser.add_argument('--new-player', '-n',
-                        dest='new_player',
+                        dest='registerPlayer',
                         action='store',
                         nargs='+',
                         metavar='FIRST LAST COUNTRY',
@@ -552,7 +482,7 @@ def argument_parser():
 
     # SWISS MATCHUP function
     parser.add_argument('--swiss-match', '-s',
-                        dest='swiss_match',
+                        dest='swissPairings',
                         action='store_true',
                         default=False,
                         help='Create a new match with swiss pairing.')
@@ -564,23 +494,16 @@ def argument_parser():
                         default=False,
                         help='Get the results from the latest match.')
 
-    # GET LATEST RESULTS function
-    parser.add_argument('--lookup-match', '-r',
-                        dest='lookup_match',
-                        action='store',
-                        metavar='ID',
-                        help='Get the results from a specific match.')
-
     # DELETE PLAYER function
     parser.add_argument('--delete-player', '-d',
-                        dest='delete_player',
+                        dest='deletePlayer',
                         action='store',
                         metavar='ID',
                         help='Remove a player from the match system.')
 
     # EDIT PLAYER function
     parser.add_argument('--edit-player', '-e',
-                        dest='editPlayers',
+                        dest='editPlayer',
                         action='store',
                         nargs='+',
                         metavar='ID NEWNAME NEWCOUNTRY',
@@ -588,17 +511,10 @@ def argument_parser():
 
     # DELETE MATCH function
     parser.add_argument('--delete-match', '-f',
-                        dest='deleteMatches',
+                        dest='deleteMatch',
                         action='store',
                         metavar='ID',
                         help='Remove a match from the match system.')
-
-    # LIST RESULTS function
-    parser.add_argument('--list-matches', '-k',
-                        dest='list_matches',
-                        action='store_true',
-                        default=False,
-                        help='List Results from a recent match.')
 
     # LIST PLAYERS function
     parser.add_argument('--list-players', '-p',
@@ -621,44 +537,36 @@ def argument_parser():
 def main():
     parser = argument_parser()
     args = parser.parse_args()
-    if args.new_player:
-        new_player(player_name=(args.new_player[0] + ' ' + args.new_player[1]),
-                   country=args.new_player[2])
+    if args.registerPlayer:
+        registerPlayer(player_name=(args.registerPlayer[0] + ' ' + args.registerPlayer[1]),
+                   country=args.registerPlayer[2])
 
     if args.new_match:
         players = args.new_match
-        go_match(p1=players[0], p2=players[1])
+        reportMatch(p1=players[0], p2=players[1])
 
     if args.swiss_match:
-        swiss_match()
+        swissPairings()
 
-    if args.delete_player:
-        editPlayers(option="delete",
-                    player=str(args.delete_player))
+    if args.deletePlayer:
+        deletePlayer(player=str(args.delete_player))
 
-    if args.edit_player:
-        name = "%s %s" % (args.edit_player[1], args.edit_player[2])
-        editPlayers(option="edit",
-                    player=str(args.edit_player[0]),
-                    new_name=name, new_country=args.edit_player[3])
+    if args.editPlayer:
+        name = "%s %s" % (args.editPlayer[1], args.editPlayer[2])
+        editPlayer(player=str(args.editPlayer[0]),
+                    new_name=name, new_country=args.editPlayer[3])
 
     if args.list_players:
         list_players()
 
-    if args.deleteMatches:
-        deleteMatches(match=str(args.deleteMatches))
-
-    if args.list_matches:
-        list_matches()
-
-    if args.lookup_match:
-        lookup_match(match=str(args.lookup_match))
+    if args.deleteMatch:
+        deleteMatch(match=str(args.deleteMatch))
 
     if args.latest_match:
         latest_match()
 
     if args.list_ranking:
-        list_win_ranking()
+        playerStandings()
 
     # IF NO ARGUMENTS #
 
